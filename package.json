@@ -5,8 +5,8 @@
   "dependencies": {
     "websocket": "^1.0.34"
   },
-  "main": "app.js",
+  "main": "mainjs",
   "scripts": {
-    "start": "node ./app.js"
+    "start": "node ./main.js"
   }
 }

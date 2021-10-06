@@ -1,2 +1,2 @@
-node.exe app.js
+node.exe main.js
 pause
