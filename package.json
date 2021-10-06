@@ -1,5 +1,12 @@
 {
+  "name" : "xbridge_node",
+  "version": "1.0.0",
+  "description": "XBridge框架Node版",
   "dependencies": {
     "websocket": "^1.0.34"
+  },
+  "main": "app.js",
+  "scripts": {
+    "start": "node ./app.js"
   }
 }
