@@ -3,8 +3,12 @@
   "version": "1.0.0",
   "description": "XBridge框架Node版",
   "dependencies": {
-    "websocket": "^1.0.34"
+    "websocket": "^1.0.34",
+    "dgram": "^1.0.1",
+    "http": "^0.0.1-security",
+    "oicq": "^1.19.4"
   },
+  "author": "yanhy&lition",
   "main": "mainjs",
   "scripts": {
     "start": "node ./main.js"
