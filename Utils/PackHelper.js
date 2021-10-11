@@ -1,4 +1,4 @@
-const AES = require("./AES.js");
+const AES = require("./AES");
 
 function guid() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -15,7 +15,7 @@ function guid() {
 * @param cmd 要执行的命令
 * @param id 执行附带的ID，返回包时会附带
 */
-function GetRuncmdPack(k,iv,cmd,id){
+module.exports.GetRuncmdPack = function(k,iv,cmd,id){
     var p = {
         type : "pack",
         action : "runcmdrequest",
@@ -32,7 +32,7 @@ function GetRuncmdPack(k,iv,cmd,id){
 * @param iv 加密偏移量
 * @param text 发送到服务端的文本
 */
-function GetSendTextPack(k,iv,text){
+module.exports.GetSendTextPack = function(k,iv,text){
     var p = {
         type : "pack",
         action : "sendtext",
@@ -47,9 +47,9 @@ function GetSendTextPack(k,iv,text){
 function GetEncrypt(k,iv,pack){
     var p = {
         type : "encrypt",
-        params = {
+        params : {
             mode : "aes_cbc_pck7padding",
-            raw = AES.encrypt(k,iv,pack)
+            raw : AES.encrypt(k,iv,pack)
         }
     };
     return JSON.stringify(p);
