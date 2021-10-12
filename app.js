@@ -5,12 +5,15 @@ var conf = require("./main");
 const ws = require("./Utils/Websocket");
 const AES = require("./Utils/AES");
 const MD5 = require("./Utils/MD5");
+const PHelper = require("./Utils/PackHelper")
 var fs = require('fs');
+var ws = null //初始化全局websocket对象
 
 //bot示例
 bot.on("message.group", function (e) {
     if(e.raw_message == "test"){
         e.reply("11132测试！");
+	ws.sendUTF(PHelper.GetRuncmdPack(...));  //主动发信示例
     }
 })
 
@@ -28,6 +31,7 @@ var client = ws.GetWebsocketClient(address , servername , passwd);
 
 client.ws.on("connect",function(con){
     console.log("WS服务器连接成功！")
+    ws = con //装载全局ws对象
     con.on("message",function(m){   
         try
         {
