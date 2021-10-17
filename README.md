@@ -20,8 +20,8 @@
     - "ws_address": "ws://127.0.0.1:8080",//ws服务端地址（kwo所在地址，也可以不同服务器连接，只需开放端口即可）
 	- "server_name": "生存服务器",//服务器名称，用于分辨多服
 	- "qq_group": [615056067]//群号，可以填写多个，目前仅支持第一个群
-4.启动[KWO](https://github.com/XBridgeX/KWO/releases)（可无需开服，只需要确保ws启用即可）
-4. 执行 `npm start` 即可启动程序
+4. 启动[KWO](https://github.com/XBridgeX/KWO/releases)（可无需开服，只需要确保ws启用即可）
+5. 执行 `npm start` 即可启动程序
 
 ---
 

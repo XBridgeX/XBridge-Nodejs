@@ -7,13 +7,23 @@ const AES = require("./Utils/AES");
 const MD5 = require("./Utils/MD5");
 const PHelper = require("./Utils/PackHelper")
 var fs = require('fs');
-var ws = null //初始化全局websocket对象
+// var ws = null //初始化全局websocket对象
 
+var address = conf.address;
+var servername = conf.servername;
+var passwd = conf.ws_passwd;
+var groupID = conf.groupID;
+
+var k = "1234567890123456";
+var iv = "1234567890123456";
+k = MD5.MD5(passwd).toUpperCase().substring(0,16);
+iv = MD5.MD5(passwd).toUpperCase().substring(16,32);
 //bot示例
 bot.on("message.group", function (e) {
     if(e.raw_message == "test"){
         e.reply("11132测试！");
-	ws.sendUTF(PHelper.GetRuncmdPack(...));  //主动发信示例
+        console.log(k,iv,"stop",0)
+	ws.sendUTF(PHelper.GetRuncmdPack("k,iv,"stop",0"));  //主动发信示例
     }
 })
 
@@ -23,15 +33,12 @@ function logger(e)
 };
 
 logger("准备加载XBridge...");
-var address = conf.address;
-var servername = conf.servername;
-var passwd = conf.ws_passwd;
-var groupID = conf.groupID;
+
 var client = ws.GetWebsocketClient(address , servername , passwd);
 
 client.ws.on("connect",function(con){
     console.log("WS服务器连接成功！")
-    ws = con //装载全局ws对象
+    // ws = con //装载全局ws对象
     con.on("message",function(m){   
         try
         {
