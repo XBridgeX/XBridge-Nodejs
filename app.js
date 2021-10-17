@@ -5,8 +5,8 @@ var conf = require("./main");
 const ws = require("./Utils/Websocket");
 const AES = require("./Utils/AES");
 const MD5 = require("./Utils/MD5");
+const send = require("./Utils/PackHelper")
 var fs = require('fs');
-
 //bot示例
 bot.on("message.group", function (e) {
     if(e.raw_message == "test"){
@@ -32,16 +32,25 @@ client.ws.on("connect",function(con){
         try
         {
             var TempData = AES.decrypt(client.k,client.iv,JSON.parse(m.utf8Data).params.raw);
-            // console.log(AES.decrypt(client.k,client.iv,JSON.parse(m.utf8Data).params.raw));
             let data = JSON.parse(TempData)
             let cause = data.cause;
             let e = data.params;
             console.log(data,cause,e)
             switch(cause)
             {
-                case "join":{};break;
-                case "left":{};break;
-                case "chat":{};break;
+                case "join":{
+                    let player = e.sender;
+                    bot.sendGroupMsg(groupID[0], "玩家 "+player+" 进入了服务器！");
+                };break;
+                case "left":{
+                    let player = e.sender;
+                    bot.sendGroupMsg(groupID[0], "玩家 "+player+" 离开了服务器！");
+                };break;
+                case "chat":{
+                    let player = e.sender;
+                    let chat = e.text;
+                    bot.sendGroupMsg(groupID[0], "[服聊] "+player+" >> "+chat);
+                };break;
                 case "runcmdfeedback":{};break;
                 case "start":{
                     let str = "服务器启动！";
@@ -54,9 +63,11 @@ client.ws.on("connect",function(con){
                     bot.sendGroupMsg(groupID[0], str);
                 };break;
                 case "plantext":{};break;
-                case "decodefailed":{};break;
+                case "decodefailed":{
+                    bot.sendGroupMsg(groupID[0], "数据包解析异常，请前往后台查看");
+                    console.log("数据包解析异常：",e.msg)
+                };break;
             }
-
         }catch(err)
         {
             console.log("异常信息：",err.message);
@@ -71,5 +82,6 @@ client.ws.on("connect",function(con){
 });
 client.ws.on('connectFailed', function(error) {
     console.log('WS连接失败: ' + error.toString());
+   
 });
 client.Connect();

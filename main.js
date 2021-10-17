@@ -90,14 +90,13 @@ else{
 }
 },3500)
 
-setTimeout(()=>{
+setTimeout(function link(){
     exports.bot = bot;//主程序;
     exports.address = address;
     exports.servername = servername;
     exports.ws_passwd = ws_passwd;
     exports.groupID = groupID;
 	require("./app");
-
 },3000);
 
 //控制台指令控制
