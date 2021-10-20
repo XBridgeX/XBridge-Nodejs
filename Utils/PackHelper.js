@@ -46,7 +46,7 @@ module.exports.GetSendTextPack = function(k,iv,text){
 
 function GetEncrypt(k,iv,pack){
     var p = {
-        type : "encrypt",
+        type : "encrypted",
         params : {
             mode : "aes_cbc_pck7padding",
             raw : AES.encrypt(k,iv,pack)
