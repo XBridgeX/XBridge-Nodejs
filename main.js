@@ -23,10 +23,10 @@ function init(){
 			let jsonData = {
 				"qq": 123456,
 				"login_qrcode":true,
-				"password":123456,
+				"qq_password":"qqpassword",
                 "ws_address": "ws://127.0.0.1:8080",
                 "server_name": "生存服务器",
-                "password": "password",
+                "ws_password": "wspassword",
                 "qq_group":[123456]
 			}
 			let text = JSON.stringify(jsonData,null,'\t');
@@ -42,24 +42,24 @@ function init(){
 init();
 console.log(" ██     ██ ██████          ██      ██                \n░░██   ██ ░█░░░░██        ░░      ░██  █████         \n ░░██ ██  ░█   ░██  ██████ ██     ░██ ██░░░██  █████ \n  ░░███   ░██████  ░░██░░█░██  ██████░██  ░██ ██░░░██\n   ██░██  ░█░░░░ ██ ░██ ░ ░██ ██░░░██░░██████░███████\n  ██ ░░██ ░█    ░██ ░██   ░██░██  ░██ ░░░░░██░██░░░░ \n ██   ░░██░███████ ░███   ░██░░██████  █████ ░░██████\n░░     ░░ ░░░░░░░  ░░░    ░░  ░░░░░░  ░░░░░   ░░░░░░ \n");
 let config = JSON.parse(fs.readFileSync(data));
-const loginway = config.login_qrcode;//登陆方式，默认为为true；（true：扫码登陆，false：密码登陆）
-const account = config.qq;//机器人qq号
-const password = config.password;
+const loginway = config.login_qrcode;//登录方式，默认为为true；（true：扫码登录，false：密码登录）
+const account = config.qq;//机器人qq号码
+const qq_passwd = config.qq_password;//机器人qq密码
 const address = config.ws_address;//ws地址
 const servername = config.server_name;//服务端名称
-const ws_passwd = config.password;//ws密码
+const ws_passwd = config.ws_password;//ws密钥
 const groupID = config.qq_group;//群号组
 
 const conf = {//机器人内部配置
-		platform: 2,//2：使用安卓pad协议
+		platform: 2,//QQ登录协议。1:安卓手机 2:安卓平板 3:安卓手表 4:MacOS 5:iPad
 		kickoff: false,
 		ignore_self: true,
 		resend: true,
 		brief: true		
 }
 const bot = require("oicq").createClient(account,conf)
-setTimeout(()=>{//登陆部分
-//默认扫码登陆
+setTimeout(()=>{//登录部分
+//默认扫码登录
 if(loginway)
 {
 	bot.on("system.login.qrcode", function (e) {
@@ -74,10 +74,10 @@ if(loginway)
 	})
 	.login()
 }
-//密码登陆
+//密码登录
 else{
 	bot.on("system.login.slider", function (event) {
-		this.logger.mark("需要验证滑块登陆！") 
+		this.logger.mark("需要验证滑块登录！") 
 		process.stdin.once("data", (input) => {
 		  this.sliderLogin(input);
 		});
@@ -86,7 +86,7 @@ else{
 		process.stdin.once("data", () => {
 		  this.login();
 		});
-	  }).login(password);
+	  }).login(qq_passwd);
 }
 },3500)
 
@@ -94,6 +94,7 @@ setTimeout(function link(){
     exports.bot = bot;//主程序;
     exports.address = address;
     exports.servername = servername;
+	exports.qq_passwd = qq_passwd;
     exports.ws_passwd = ws_passwd;
     exports.groupID = groupID;
 	require("./app");
