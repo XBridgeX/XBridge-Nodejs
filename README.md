@@ -13,6 +13,10 @@ XWebSocket|停更，已转向KWO
 ---
 
 # 使用说明
+## 环境要求
+* XBridge-Nodejs可以在主流的操作系统平台（包括但不限于Windows、Linux）上运行；
+* Node.js版本必须为14.x及以上
+
 ## 用户配置指南
 1. 安装 [Node.js](https://nodejs.org/)（要求Node.js版本为14.x及以上）；
 2. 将本项目克隆到本地：
@@ -20,7 +24,7 @@ XWebSocket|停更，已转向KWO
 git clone https://github.com/XBridgeX/XBridge-Nodejs.git
 ```
 3. 进入XBridge-Nodejs目录，在该目录下打开终端，输入 `npm i` 安装依赖模块；
-4. 双击 `run.bat` 启动机器人。初次启动后会在目录下创建配置文件，并自动退出。配置文件位于`/data`目录下；
+4. 在终端钟输入`node main.js`启动机器人。初次启动后会在目录下创建配置文件，并自动退出。配置文件位于`/data`目录下；
 5. 打开`/data/config.json` ，根据实际情况进行配置。以下是配置示例（请不要抄注释）：
 ```json
 {
