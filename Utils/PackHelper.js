@@ -13,15 +13,14 @@ function guid() {
 * @param k 加密密匙
 * @param iv 加密偏移量
 * @param cmd 要执行的命令
-* @param id 执行附带的ID，返回包时会附带
 */
-module.exports.GetRuncmdPack = function(k,iv,cmd,id){
+module.exports.GetRuncmdPack = function(k,iv,cmd){
     var p = {
         type : "pack",
         action : "runcmdrequest",
         params : {
             cmd : cmd,
-            id : id
+            id : guid()
         }
     }
     return GetEncrypt(k,iv,JSON.stringify(p))
