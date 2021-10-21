@@ -4,11 +4,11 @@
 **XBridge-Nodejs** 是XBridgeX项目下的一个MC群服互通机器人，基于[QICQ](https://github.com/takayama-lily/oicq)机器人框架、Node.js编程语言进行构建。
 目前，XBridge支持与以下主流的WebSocket服务端进行对接：
 
-WebSocket服务端|项目状态
--|-|-
-[KWO](https://github.com/XBridgeX/KWO)|活动，开发中
-[LLWebSocket（原BDXWebSocket）](https://www.minebbs.com/resources/c-bdx-liteloader-bdswebsocketapi.2150/)|活动
-XWebSocket|停更，已转向KWO
+|WebSocket服务端|项目状态|
+|-|-|-|
+|[KWO](https://github.com/XBridgeX/KWO)|活动，开发中|
+|[LLWebSocket（原BDXWebSocket）](https://www.minebbs.com/resources/c-bdx-liteloader-bdswebsocketapi.2150/)|活动|
+|XWebSocket|停更，已转向KWO|
 
 ---
 
