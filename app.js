@@ -236,9 +236,10 @@ function modules(e,re,type,content,succeed,failed){
                 //console.log(`${res.statusCode}OK`);
                 e.reply(succeed)
                 res.resume();
-                }).on('error', (e) => {
+
+                }).on('error', (err) => {
                     e.reply(failed)
-                console.log(`${e.message}`);
+                    console.log(`${err.message}`);
                 })
         };break
     }
