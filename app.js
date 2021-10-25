@@ -28,7 +28,9 @@ console.log(motd+"加载中，请稍后...");
 
 //群消息监听
 bot.on("message.group", function(e){
-    logic_main(e)
+    if(e.group_id == groupID){
+        logic_main(e)
+    }
 })
 
 //公共方法1：玩家权限判断
