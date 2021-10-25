@@ -15,19 +15,79 @@ var servername = conf.servername;
 var passwd = conf.ws_passwd;
 var groupID = conf.groupID;
 
-var mobs = JSON.parse(fs.readFileSync("./data/mobs.json"))  //实体数据
-var reg = JSON.parse(fs.readFileSync("./data/regex.json"))    //自动应答数据
+var client = ws.GetWebsocketClient(address , servername , passwd);
+
+let cfg_path = conf.datapath+"/config"      // "./data/config/"
+let regex_json = cfg_path+"/regex.json"     // "./data/config/regex.json"
+let mobs_json = cfg_path+"/mobs.json"    // "./data/config/mobs.json"
+let players_info_json = cfg_path+"/players_info.json"   // "./data/config/players_info.json"
 
 var k = "1234567890123456";
 var iv = "1234567890123456";
 k = MD5.MD5(passwd).toUpperCase().substring(0,16);
 iv = MD5.MD5(passwd).toUpperCase().substring(16,32);
 
-var motd = "[xBridge] "
-console.log(motd+"加载中，请稍后...");
 
-//群消息监听
-bot.on("message.group", function(e){
+//控制台消息
+function logger(e)
+{
+	console.log("[XBridge] "+e)
+};
+logger("正在启动，请稍后...");
+
+//配置文件初始化
+function prepare(){
+    if(!fs.existsSync(cfg_path)){   //创建config文件夹
+        fs.mkdirSync(cfg_path)
+    }
+
+    try{        //正则配置初始化
+        if(fs.openSync(regex_json,'r')){
+			logger("检测到正则配置存在") 
+		}
+    }catch(err){
+        logger("正则配置不存在，使用示例配置进行创建...");
+        try{
+            fs.copyFileSync("./example/regex_example.json",regex_json);
+            logger("正则配置创建成功！")
+        }
+        catch(err){
+            logger("正则配置创建失败：示例配置不存在，请到XBridge交流群寻求技术支持！")
+        }
+    }
+
+    try{        //玩家数据初始化
+        if(fs.openSync(players_info_json,'r')){
+			logger("检测到玩家数据存在") 
+		}
+    }catch(err){
+        logger("玩家数据不存在，正在初始化...")
+        var file_open = fs.openSync(players_info_json,'w');
+        fs.writeSync(file_open, "[]");
+        fs.closeSync(file_open)
+        logger("玩家数据初始化完成！")
+    }
+
+    try{        //实体数据初始化
+        if(fs.openSync(mobs_json,'r')){
+			logger("检测到实体数据存在") 
+		}
+    }catch(err){
+        logger("实体数据不存在，使用示例配置进行创建...");
+        try{
+            fs.copyFileSync("./example/mobs_example.json",mobs_json);
+            logger("实体数据创建成功！")
+        }
+        catch(err){
+            logger("实体数据创建失败：示例配置不存在，请到XBridge交流群寻求技术支持！")
+        }
+    }
+};
+prepare();
+
+
+
+bot.on("message.group", function(e){    //开始监听群消息
     if(e.group_id == groupID){
         logic_main(e)
     }
@@ -35,7 +95,7 @@ bot.on("message.group", function(e){
 
 //公共方法1：玩家权限判断
 function permission(e) {
-    let players_info = JSON.parse(fs.readFileSync("./data/players_info.json"))  //转换玩家数据为对象
+    let players_info = JSON.parse(fs.readFileSync(players_info_json))  //转换玩家数据为对象
     for(var i=0 ; i<players_info.length ; i++){     //遍历玩家对象
         if(players_info[i].qqid == e.user_id){  //在玩家对象中，如果发信玩家的qq号和玩家对象中的qqid一致，
             let permission = players_info[i].permission
@@ -54,7 +114,7 @@ function permission(e) {
 //公共方法2：玩家数据读写
 function file_rw(e,players_info_tmp,content){
     let players_info = JSON.stringify(players_info_tmp,null,'\t');
-    let open_players_info = fs.openSync("./data/players_info.json",'w');
+    let open_players_info = fs.openSync(players_info_json,'w');
     fs.writeSync(open_players_info, players_info);
     fs.closeSync(open_players_info);
     e.reply("[CQ:at,qq="+e.user_id+"]\n"+content);
@@ -62,6 +122,8 @@ function file_rw(e,players_info_tmp,content){
 
 //主逻辑
 function logic_main(e){
+    let reg = JSON.parse(fs.readFileSync(regex_json))    //自动应答数据
+    //let players_info_json = cfg_path+"/players_info.json"   // "./data/config/players_info.json"
     for (var a=0 ; a<reg.length ; a++){    //遍历正则对象
         let re = new RegExp(reg[a].keywords,"g");   //新建一个局部正则对象，用于匹配关键词
         if(e.raw_message == e.raw_message.match(re)){     //若玩家发送的消息与正则中的关键词匹配
@@ -81,13 +143,8 @@ function logic_main(e){
             }
         }
     }
-}
-function logger(e)
-{
-	console.log("[XB]"+e)
-};
+}   
 
-logger("准备加载XBridge...");
 //功能模块（白名单加减、自定义命令等）
 function modules(e,re,type,content,succeed,failed){
     switch(type)
@@ -102,7 +159,7 @@ function modules(e,re,type,content,succeed,failed){
 
         case "bind_whitelist":{    //自助绑定白名单（玩家）
             let xboxid = e.raw_message.replace(re,"$1");   //匹配玩家输入的xboxid
-            let players_info_tmp = JSON.parse(fs.readFileSync("./data/players_info.json"));  //读取玩家数据文件并转换为对象
+            let players_info_tmp = JSON.parse(fs.readFileSync(players_info_json));  //读取玩家数据文件并转换为对象
             if(players_info_tmp.some( (val) => val.name===xboxid)){
                 e.reply("[CQ:at,qq="+e.user_id+"]\n白名单申请已受理，请勿重复提交！");
             }
@@ -116,13 +173,13 @@ function modules(e,re,type,content,succeed,failed){
         case "add_whitelist":{      //加白名单(管理员)
             for (var f=0 ; f<e.message.length ; f++){   //遍历消息
                 let at_qqid = e.message[f].data.qq     //获取管理员所艾特的那个人的qq
-                let players_info_tmp = JSON.parse(fs.readFileSync("./data/players_info.json"));  //读取玩家数据文件并转换为对象
+                let players_info_tmp = JSON.parse(fs.readFileSync(players_info_json));  //读取玩家数据文件并转换为对象
                 if(e.message[f].type == "at" ){  //检测到消息类型为at时
                     if(players_info_tmp.some( (val) => val.qqid===at_qqid)){     //当玩家数据中的qqid和艾特的qq一致时候
                         for(var p=0 ; p<players_info_tmp.length ; p++){
                             let s = (players_info_tmp.indexOf(players_info_tmp.filter(d=>d.qqid===at_qqid)[p]))    //获取玩家qqid所在对象的索引值
                             if (players_info_tmp[s].enable){
-                                e.reply("[CQ:at,qq="+e.user_id+"]\n该玩家已经绑定过了！")
+                                e.reply("[CQ:at,qq="+e.user_id+"]\n该玩家已经绑定，且已添加过白名单过了！")
                             }
                             else{
                                 ws_send.sendUTF(PHelper.GetRuncmdPack(k,iv,"whitelist add \""+players_info_tmp[s].name+"\""))   //通过索引值，将玩家相应的xboxid添加到服务器白名单
@@ -139,7 +196,7 @@ function modules(e,re,type,content,succeed,failed){
         };break;
 
         case "unbind_whitelist":{   //解绑（玩家）
-            let players_info_tmp = JSON.parse(fs.readFileSync("./data/players_info.json"));  //读取玩家数据文件并转换为对象
+            let players_info_tmp = JSON.parse(fs.readFileSync(players_info_json));  //读取玩家数据文件并转换为对象
             if(players_info_tmp.some((val) => val.qqid===e.user_id)){
                 for(var q=0 ; q<players_info_tmp.length ; q++){
                     let s = players_info_tmp.indexOf(players_info_tmp.filter(d=>d.qqid === e.user_id)[q]);
@@ -156,7 +213,7 @@ function modules(e,re,type,content,succeed,failed){
         case "del_whitelist":{      //删白名单(管理员)
             for (var f=0 ; f<e.message.length ; f++){   //遍历消息
                 let at_qqid = e.message[f].data.qq     //获取管理员所艾特的那个人的qq
-                let players_info_tmp = JSON.parse(fs.readFileSync("./data/players_info.json"));  //读取玩家数据文件并转换为对象
+                let players_info_tmp = JSON.parse(fs.readFileSync(players_info_json));  //读取玩家数据文件并转换为对象
                 if(e.message[f].type == "at" ){  //检测到消息类型为at时
                     if(players_info_tmp.some( (val) => val.qqid===at_qqid)){     //当玩家数据中的qqid和艾特的qq一致时
                         for(var p=0 ; p<players_info_tmp.length ; p++){
@@ -187,10 +244,13 @@ function modules(e,re,type,content,succeed,failed){
     }
 }
 
-var client = ws.GetWebsocketClient(address , servername , passwd);
-client.ws.on("connect",function(con){
-    console.log(motd+"WS服务器连接成功！")
+
+
+client.Connect();                       //建立WS客户端连接
+client.ws.on("connect",function(con){   //WS客户端连接成功
+    logger("WS服务器连接成功！")
     ws_send = con //装载全局ws对象
+    let mobs = JSON.parse(fs.readFileSync(mobs_json))  //实体数据
     con.on("message",function(m){   
         try
         {
@@ -248,7 +308,7 @@ client.ws.on("connect",function(con){
                 case "plantext":{};break;
                 case "decodefailed":{
                     bot.sendGroupMsg(groupID[0], "数据包解析失败，请前往后台查看");
-                    console.log("数据包解析失败：",e.msg)
+                    logger("数据包解析失败：",e.msg)
                 };break;
             }
         }catch(err)
@@ -257,18 +317,17 @@ client.ws.on("connect",function(con){
         }
     })
     con.on('error', function(error) {
-        console.log(motd+"WS连接出错: " + error.toString());
+        logger("WS连接出错: " + error.toString());
     });
     con.on('close', function() {
-        console.log(motd+"WS连接已关闭！");
+        logger("WS连接已关闭！");
         bot.sendGroupMsg(groupID[0],"服务器已关闭")
         setTimeout(function(){client.Connect()},5000)
     });
 });
-client.ws.on('connectFailed', function(error) {
-    console.log(motd+"WS连接失败: " + error.toString());
+
+client.ws.on('connectFailed', function(error) {     //WS客户端连接失败
+    logger("WS连接失败: " + error.toString());
     setTimeout(function(){client.Connect()},5000)
    
 });
-
-client.Connect();
