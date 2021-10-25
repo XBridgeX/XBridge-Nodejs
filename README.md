@@ -1,5 +1,5 @@
 # XBridge-Nodejs简介
-![GitHub](https://img.shields.io/github/license/XBridgeX/XBridge-Nodejs) ![GitHub forks](https://img.shields.io/github/forks/XBridgeX/XBridge-Nodejs) ![GitHub contributors](https://img.shields.io/github/contributors/XBridgeX/XBridge-Nodejs?color=orange) ![GitHub last commit](https://img.shields.io/github/last-commit/XBridgeX/XBridge-Nodejs?color=purple)
+![GitHub](https://img.shields.io/github/license/XBridgeX/XBridge-Nodejs) ![GitHub forks](https://img.shields.io/github/forks/XBridgeX/XBridge-Nodejs) ![GitHub contributors](https://img.shields.io/github/contributors/XBridgeX/XBridge-Nodejs?color=orange) ![GitHub last commit (branch)](https://img.shields.io/github/last-commit/XBridgeX/XBridge-Nodejs/dev)
 
 **XBridge-Nodejs** 是XBridgeX项目下的一个MC群服互通机器人，基于[QICQ](https://github.com/takayama-lily/oicq)机器人框架、Node.js编程语言进行构建。
 目前，XBridge支持与以下主流的WebSocket服务端进行对接：
@@ -18,6 +18,7 @@ XWebSocket|停更，已转向KWO
 * Node.js版本必须为14.x及以上
 
 ## 用户配置指南
+### 初始配置
 1. 安装 [Node.js](https://nodejs.org/)（要求Node.js版本为14.x及以上）；
 2. 将本项目克隆到本地：
 ```bash
@@ -49,8 +50,19 @@ WS服务器连接成功！
 [2021-10-21T15:54:19.205] [MARK] [iPad:123456] - 加载了1个好友，1个群，1个陌生人。
 [2021-10-21T15:54:19.349] [MARK] [iPad:123456] - 初始化完毕，开始处理消息。
 ```
+## 正则表达式配置
+正则表达式文件`regex.json`位于`./data`目录下，用于配置群消息自动应答。当玩家在群内发送消息时，如果发送的文本和正则表达式中的关键词匹配，且玩家权限与该段关键词的所需权限匹配，即可触发相应的功能，包括：
+1. bind_whitelist：玩家绑定白名单
+2. unbind_whitelist：玩家解绑白名单
+3. add_whitelist：管理员为玩家添加白名单
+4. del_whitelist：管理员撤销玩家白名单
+5. runcmd：执行服务器指令
+6. http_get：发起http_get请求
 
-## 高级功能（针对开发人员）
-* 你也可以使用main_old.js，脱离bot框架进行调试。
-* 更多功能待完善...
+## 实体数据配置
+实体数据文件`mobs.json`位于`./data`目录下，用于玩家/生物被杀时转发死亡事件到群内。由于文件过长，不便展示（晚点再写= =）
+
+## 玩家死亡类型判断
+Developing...
+
 ---
