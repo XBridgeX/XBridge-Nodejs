@@ -3,7 +3,7 @@ var fs = require('fs');
 //let path = require('path');
 let data = "./config/global_setting.json"
 let datapath = "./config"
-let ver = "1.0.0_beta10262108"
+let ver = "1.0.0_beta10282343"
 
 function logger(e){
 	console.log(e)
@@ -16,7 +16,7 @@ function init(){
     }
 	try{                            //全局配置检测
 		if(fs.openSync(data,'r')){      //配置文件存在
-			logger("[INFO] 正在加载全局配置...")
+			logger("[INFO] 正在加载全局配置...");
             ocl_core()      //开始加载ocl核心
 		}
     }
