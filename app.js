@@ -6,7 +6,7 @@ const ws = require("./Utils/Websocket");
 const AES = require("./Utils/AES");
 const MD5 = require("./Utils/MD5");
 const http = require('http');
-const PHelper = require("./Utils/PackHelper")
+const PHelper = require("./Utils/PackHelper")   //WS发包
 var fs = require('fs');
 var ws_send = null //初始化全局websocket对象
 
@@ -119,20 +119,66 @@ function file_rw(e,players_info_tmp,content){
     e.reply("[CQ:at,qq="+e.user_id+"]\n"+content);
 }
 
+//公共方法3：玩家信息检索（加白名单）
+function players_info_select_add(e,players_info_tmp,qqid,content){
+    if(players_info_tmp.some((val) => val.qqid===qqid)){
+        let s = players_info_tmp.indexOf(players_info_tmp.filter(d=>d.qqid === qqid)[0]);
+        let reply_xboxid = players_info_tmp[s].name
+        let reply_qqid = players_info_tmp[s].qqid
+
+        switch(players_info_tmp[s].permission){ //权限判断
+            case 0:
+                var reply_permission = "普通成员"
+            break;
+
+            case 1:
+                var reply_permission = "管理员"
+            break;
+        }
+
+        switch(players_info_tmp[s].enable){ //白名单状态判断
+            case true:
+                var reply_wl_status = "已添加"
+            break;
+
+            case false:
+                var reply_wl_status = "待添加"
+            break;
+        }
+        e.reply("[CQ:at,qq="+qqid+"] "+content+"\nXbox ID："+reply_xboxid+"\nQQ："+reply_qqid+"\n权限等级："+reply_permission+"\n白名单状态："+reply_wl_status);
+    }
+    else{
+        e.reply("[CQ:at,qq="+qqid+"]\n找不到玩家信息！");
+    }
+}
+
+//公共方法4：玩家信息检索（删白名单）
+function players_info_select_del(e,players_info_tmp,qqid,content){
+    if(players_info_tmp.some( (val) => val.qqid===qqid)){
+        let s = players_info_tmp.indexOf(players_info_tmp.filter(d=>d.qqid === qqid)[0]);
+        ws_send.sendUTF(PHelper.GetRuncmdPack(k,iv,"whitelist remove \""+players_info_tmp[s].name+"\""));
+        players_info_tmp.splice(s,1);
+        return file_rw(e,players_info_tmp,content)
+    }
+    else{
+        e.reply("[CQ:at,qq="+qqid+"]\n玩家未绑定！");
+    }
+}
+
 //主逻辑
 function logic_main(e){
     let reg = JSON.parse(fs.readFileSync(regex_json))
     for (var a=0 ; a<reg.length ; a++){
-        let re = new RegExp(reg[a].keywords,"g");
-        if(e.raw_message == e.raw_message.match(re)){
-            let r = (reg.indexOf(reg.filter(d=>d.keywords===d.keywords)[a]))
-            if(reg[r].permission == 1 && permission(e) != 1){     //如果正则要求权限为1，但玩家非管理员，则告知无权，跳出循环
+        let re = new RegExp(reg[a].keywords,"g");   //正则对象
+        if(e.raw_message == e.raw_message.match(re)){   //通过正则匹配玩家消息
+            let r = (reg.indexOf(reg.filter(d=>d.keywords===d.keywords)[a]))    //遍历 获取玩家权限
+            if(reg[r].permission == 1 && permission(e) != 1){     //如果正则要求权限为1，但玩家非管理员，则告知无权并跳出循环
                 e.reply("[CQ:at,qq="+e.user_id+"]\n您不是管理员，无权执行该操作！");
                 continue
             }
             else{
                 for (var b=0 ; b<reg[r].actions.length ; b++) {    //遍历动作列表
-                    let type = reg[r].actions[b].type;
+                    let type = reg[r].actions[b].type;  //动作类型
                     let content = reg[r].actions[b].content;
                     let succeed = reg[r].actions[b].succeed;
                     let failed = reg[r].actions[b].failed;
@@ -195,108 +241,37 @@ function modules(e,re,type,content,succeed,failed){
         };
         break;
 
-        case "bind_check_self":{   //个人自查
+        case "bind_check_self":{   //查询本人绑定状态
             let players_info_tmp = JSON.parse(fs.readFileSync(players_info_json));
-            if(players_info_tmp.some((val) => val.qqid===e.user_id)){
-                
-                var s = players_info_tmp.indexOf(players_info_tmp.filter(d=>d.qqid === e.user_id)[0]);
-                var reply_xboxid = players_info_tmp[s].name
-                var reply_qqid = players_info_tmp[s].qqid
-
-                switch(players_info_tmp[s].permission){
-                    case 0:
-                        var reply_permission = "普通成员"
-                    break;
-
-                    case 1:
-                        var reply_permission = "管理员"
-                    break;
-                }
-
-                switch(players_info_tmp[s].enable){
-                    case true:
-                        var reply_wl_status = "已添加"
-                    break;
-
-                    case false:
-                        var reply_wl_status = "待添加"
-                    break;
-                }
-                e.reply("[CQ:at,qq="+e.user_id+"] "+content+"\nXbox ID："+reply_xboxid+"\nQQ："+reply_qqid+"\n权限等级："+reply_permission+"\n白名单状态："+reply_wl_status);
-            }
-            else{
-                e.reply("[CQ:at,qq="+e.user_id+"]\n你还没有绑定！")
-            }
+            let qqid = e.user_id;
+            players_info_select_add(e,players_info_tmp,qqid,content)
         };
         break
 
-        case "bind_check":{
+        case "bind_check":{     //查询目标玩家的绑定状态
             for (var j=0 ; j<e.message.length ; j++){
-                let at_qqid = e.message[j].data.qq
+                let qqid = e.message[j].data.qq
                 let players_info_tmp = JSON.parse(fs.readFileSync(players_info_json));
                 if(e.message[j].type == "at" ){
-                    if(players_info_tmp.some( (val) => val.qqid===at_qqid)){
-                        let s = (players_info_tmp.indexOf(players_info_tmp.filter(d=>d.qqid===at_qqid)[0]))
-                        var reply_xboxid = players_info_tmp[s].name
-                        var reply_qqid = players_info_tmp[s].qqid
-
-                        switch(players_info_tmp[s].permission){
-                            case 0:
-                                var reply_permission = "普通成员"
-                            break;
-
-                            case 1:
-                                var reply_permission = "管理员"
-                            break;
-                        }
-
-                        switch(players_info_tmp[s].enable){
-                            case true:
-                                var reply_wl_status = "已添加"
-                            break;
-
-                            case false:
-                                var reply_wl_status = "待添加"
-                            break;
-                        }
-                        e.reply("[CQ:at,qq="+e.user_id+"] "+content+"\nXbox ID："+reply_xboxid+"\nQQ："+reply_qqid+"\n权限等级："+reply_permission+"\n白名单状态："+reply_wl_status);
-                    }
-                    else{
-                        e.reply("[CQ:at,qq="+e.user_id+"]\n未查询到该玩家的信息！");
-                    }
+                    players_info_select_add(e,players_info_tmp,qqid,content);
                 }
             }
         };
         break;
 
         case "unbind_whitelist":{   //解绑（玩家）
+            let qqid = e.user_id
             let players_info_tmp = JSON.parse(fs.readFileSync(players_info_json));
-            if(players_info_tmp.some((val) => val.qqid===e.user_id)){
-                let s = players_info_tmp.indexOf(players_info_tmp.filter(d=>d.qqid === e.user_id)[0]);
-                ws_send.sendUTF(PHelper.GetRuncmdPack(k,iv,"whitelist remove \""+players_info_tmp[s].name+"\""))
-                players_info_tmp.splice(s,1);
-                return file_rw(e,players_info_tmp,content)
-            }
-            else{
-                e.reply("[CQ:at,qq="+e.user_id+"]\n你还没有绑定！");
-            }
+            players_info_select_del(e,players_info_tmp,qqid,content)
         };
         break;
 
         case "del_whitelist":{      //删白名单(管理员)
             for (var f=0 ; f<e.message.length ; f++){
-                let at_qqid = e.message[f].data.qq
-                let players_info_tmp = JSON.parse(fs.readFileSync(players_info_json));
                 if(e.message[f].type == "at" ){
-                    if(players_info_tmp.some( (val) => val.qqid===at_qqid)){
-                        let s = players_info_tmp.indexOf(players_info_tmp.filter(d=>d.qqid === at_qqid)[0]);
-                        ws_send.sendUTF(PHelper.GetRuncmdPack(k,iv,"whitelist remove \""+players_info_tmp[s].name+"\""));
-                        players_info_tmp.splice(s,1);
-                        return file_rw(e,players_info_tmp,content)
-                    }
-                    else{
-                        e.reply("[CQ:at,qq="+e.user_id+"]\n该玩家未绑定！");
-                    }
+                    let qqid = e.message[f].data.qq
+                    let players_info_tmp = JSON.parse(fs.readFileSync(players_info_json));
+                    players_info_select_del(e,players_info_tmp,qqid,content)
                 }
             }
 
@@ -394,7 +369,7 @@ client.ws.on("connect",function(con){   //WS客户端连接成功
     });
     con.on('close', function() {
         logger("WS连接已关闭！");
-        bot.sendGroupMsg(groupID[0],"服务器已关闭")
+        bot.sendGroupMsg(groupID[0],"服务器已断开连接")
         setTimeout(function(){client.Connect()},5000)
     });
 });
