@@ -206,7 +206,7 @@ function modules(e,re,type,content,succeed,failed){
         case "bind_whitelist":{    //自助绑定白名单（玩家）
             let xboxid = e.raw_message.replace(re,"$1");
             let players_info_tmp = JSON.parse(fs.readFileSync(players_info_json));
-            if(players_info_tmp.some( (val) => val.name===xboxid)){
+            if(players_info_tmp.some( (val) => val.qqid===e.user_id)){
                 e.reply("[CQ:at,qq="+e.user_id+"]\n白名单申请已受理，请勿重复提交！");
             }
             else{
