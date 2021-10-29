@@ -1,7 +1,7 @@
-# XBridge-Nodejs简介
+# XBridge-N简介
 ![GitHub](https://img.shields.io/github/license/XBridgeX/XBridge-Nodejs) ![GitHub forks](https://img.shields.io/github/forks/XBridgeX/XBridge-Nodejs) ![GitHub contributors](https://img.shields.io/github/contributors/XBridgeX/XBridge-Nodejs?color=orange) ![GitHub last commit](https://img.shields.io/github/last-commit/XBridgeX/XBridge-Nodejs?color=purple)
 
-**XBridge-Nodejs** 是XBridgeX项目下的一个MC群服互通机器人，基于[QICQ](https://github.com/takayama-lily/oicq)机器人框架、Node.js编程语言进行构建。
+**XBridge-N** 是XBridgeX项目下的一个MC群服互通机器人，基于[OICQ](https://github.com/takayama-lily/oicq)机器人框架、Node.js编程语言进行构建。
 目前，XBridge支持与以下主流的WebSocket服务端进行对接：
 
 WebSocket服务端|项目状态
@@ -14,7 +14,7 @@ XWebSocket|停更，已转向KWO
 
 # 使用说明
 ## 环境要求
-* XBridge-Nodejs可以在主流的操作系统平台（包括但不限于Windows、Linux）上运行；
+* XBridge-N可以在主流的操作系统平台（包括但不限于Windows、Linux）上运行；
 * Node.js版本必须为14.x及以上
 
 ## 用户配置指南
@@ -23,9 +23,9 @@ XWebSocket|停更，已转向KWO
 ```bash
 git clone https://github.com/XBridgeX/XBridge-Nodejs.git
 ```
-3. 进入XBridge-Nodejs目录，在该目录下打开终端，输入 `npm i` 安装依赖模块；
+3. 进入XBridge-N目录，在该目录下打开终端，输入 `npm i` 安装依赖模块；
 4. 在终端钟输入`node main.js`启动机器人。初次启动后会在目录下创建配置文件，并自动退出。配置文件位于`/data`目录下；
-5. 打开`/data/config.json` ，根据实际情况进行配置。以下是配置示例（请不要抄注释）：
+5. 打开`/config/global_setting.json` ，根据实际情况进行配置。以下是配置示例（请不要抄注释）：
 ```json
 {
 	"qq": 123456,   //机器人QQ账号
@@ -51,6 +51,6 @@ WS服务器连接成功！
 ```
 
 ## 高级功能（针对开发人员）
-* 你也可以使用main_old.js，脱离bot框架进行调试。
+* 使用main_old.js，可以脱离bot框架进行调试。
 * 更多功能待完善...
 ---
