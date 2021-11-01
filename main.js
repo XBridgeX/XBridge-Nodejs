@@ -3,7 +3,7 @@ var fs = require('fs');
 //let path = require('path');
 let data = "./config/global_setting.json"
 let datapath = "./config"
-let ver = "1.0.0_beta10311424"
+let ver = "1.0.0_beta11012343"
 
 function logger(e){
 	console.log(e)
@@ -24,6 +24,7 @@ function init(){
         logger("[INFO] 全局配置检查未通过，将会自动创建...")
             let jsonData = {
                 "qq": "",
+                "use_protocol":1,
                 "login_qrcode":true,
                 "qq_password":"",
                 "ws_address": "",
@@ -52,7 +53,7 @@ function ocl_core(){
     const groupID = config.qq_group;//群号组
 
     const conf = {//机器人内部配置
-        platform: 2,//QQ登录协议。1:安卓手机 2:安卓平板 3:安卓手表 4:MacOS 5:iPad
+        platform: config.use_protocol,
         kickoff: false,
         ignore_self: true,
         resend: true,
