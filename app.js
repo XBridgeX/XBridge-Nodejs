@@ -353,6 +353,7 @@ client.ws.on("connect",function(con){   //WS客户端连接成功
     let mobs = JSON.parse(fs.readFileSync(mobs_json))  //实体数据
     let pe = JSON.parse(fs.readFileSync(players_event_json));
 
+
     con.on("message",function(m){
         try
         {
@@ -370,6 +371,7 @@ client.ws.on("connect",function(con){   //WS客户端连接成功
                 };break;
                 case "left":{
                     let str = pe.player_left.format(info)
+
                     bot.sendGroupMsg(groupID[0], str);
                 };break;
                 case "mobdie":{     //玩家死亡事件
@@ -377,12 +379,15 @@ client.ws.on("connect",function(con){   //WS客户端连接成功
                     {
                         let info = {"player":e.mobname,"mob":mobs[e.srctype]}
                         for (var key in mobs){
+
                             if(e.srctype == key){
                                 let str = pe.player_die.cause_by_mobs.format(info);
+
                                 bot.sendGroupMsg(groupID[0],str);
                                 break;
                             }
                         };
+
                         if(e.srctype == "unknown"){
                             let str = pe.player_die.cause_unknown.format(info);
                             bot.sendGroupMsg(groupID[0],str)
