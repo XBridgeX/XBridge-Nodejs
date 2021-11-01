@@ -1,14 +1,15 @@
 {
-  "name" : "xbridge_node",
-  "version": "1.0.0",
-  "description": "XBridge框架Node版",
+  "name": "xbridgen",
+  "version": "1.0.0_beta11012343",
+  "description": "XBridgeN(Powered by OICQ)",
   "dependencies": {
-    "websocket": "^1.0.34",
     "dgram": "^1.0.1",
     "http": "^0.0.1-security",
-    "oicq": "^1.19.4"
+    "oicq": "^1.19.4",
+    "os-utils": "^0.0.14",
+    "websocket": "^1.0.34"
   },
-  "author": "yanhy&lition",
+  "author": "yanhy&lition&asurin219&sbaoor",
   "main": "mainjs",
   "scripts": {
     "start": "node ./main.js"
