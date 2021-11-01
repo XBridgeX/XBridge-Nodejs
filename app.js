@@ -6,6 +6,8 @@ const ws = require("./Utils/Websocket");
 const AES = require("./Utils/AES");
 const MD5 = require("./Utils/MD5");
 const http = require('http');
+const osUtils = require('os-utils');
+const os = require('os');
 const PHelper = require("./Utils/PackHelper")   //WS发包
 var fs = require('fs');
 var ws_send = null //初始化全局websocket对象
@@ -28,6 +30,20 @@ var iv = "1234567890123456";
 k = MD5.MD5(passwd).toUpperCase().substring(0,16);
 iv = MD5.MD5(passwd).toUpperCase().substring(16,32);
 
+String.prototype.format= function() {
+    if(arguments.length === 0) return this;
+    var param = arguments[0], str= this;
+    if(typeof(param) === 'object') {
+        for(var key in param)
+            str = str.replace(new RegExp("\\{" + key + "\\}", "g"), param[key]);
+        return str;
+    } else {
+        for(var i = 0; i < arguments.length; i++)
+            str = str.replace(new RegExp("\\{" + i + "\\}", "g"), arguments[i]);
+        return str;
+    }
+}
+
 
 //控制台消息
 function logger(e)
@@ -47,7 +63,7 @@ function prepare(){
 		}
     }catch(err){
         logger("正则配置不存在，正在初始化...");
-        let regex_obj = [{"regex":"^百度$","permission":0,"actions":[{"type":"http_get","content":"http://www.baidu.com","succeed":"百度一下，你就知道","failed":"请求失败,请检查网路"}]},{"regex":"^查服$","permission":0,"actions":[{"type":"runcmd","content":"list"}]},{"regex":"^绑定 ([A-Za-z0-9 ]{4,20})$","permission":0,"actions":[{"type":"bind_whitelist","content":"白名单申请已发送，请等待管理员审核！","whitelist_already_apply":"你已经申请过白名单了，请勿重复提交！"}]},{"regex":"^关于我$","permission":0,"actions":[{"type":"bind_check_self","content":"我的信息：","player_not_bind":"请先绑定白名单！"}]},{"regex":"^查绑定 (.+$)","permission":0,"actions":[{"type":"bind_check","content":"查询结果：","player_not_bind":"该玩家未绑定，未查询到任何信息！"}]},{"regex":"^加白名单 (.+$)","permission":1,"actions":[{"type":"add_whitelist","content":"已将该玩家添加到所有服务器的白名单!","whitelist_already_add":"该玩家已经绑定，且已添加过白名单过了！","player_not_bind":"该玩家未绑定，无法为其添加白名单！"}]},{"regex":"^删白名单 (.+$)","permission":1,"actions":[{"type":"del_whitelist","content":"已将该玩家从所有服务器的白名单中移除!","player_not_bind":"无需删除白名单：该玩家未绑定！"}]},{"regex":"^解绑$","permission":0,"actions":[{"type":"unbind_whitelist","content":"解绑成功！","player_not_bind":"无需解绑：你还没有绑定！"}]},{"regex":"^帮助$","permission":0,"actions":[{"type":"group_message","content":"没用的帮助信息A"},{"type":"group_message","content":"没用的帮助信息B"}]}];
+        let regex_obj = [{"regex":"^百度$","permission":0,"actions":[{"type":"http_get","content":"http://www.baidu.com","succeed":"百度一下，你就知道","failed":"请求失败,请检查网络"}]},{"regex":"^查服$","permission":0,"actions":[{"type":"runcmd","content":"list"}]},{"regex":"^绑定 ([A-Za-z0-9 ]{4,20})$","permission":0,"actions":[{"type":"bind_whitelist","content":"白名单申请已发送，请等待管理员审核！","whitelist_already_apply":"你已经申请过白名单了，请勿重复提交！"}]},{"regex":"^关于我$","permission":0,"actions":[{"type":"bind_check_self","content":"我的信息：","player_not_bind":"请先绑定白名单！"}]},{"regex":"^查绑定 (.+$)","permission":0,"actions":[{"type":"bind_check","content":"查询结果：","player_not_bind":"该玩家未绑定，未查询到任何信息！"}]},{"regex":"^加白名单 (.+$)","permission":1,"actions":[{"type":"add_whitelist","content":"已将该玩家添加到所有服务器的白名单!","whitelist_already_add":"该玩家已经绑定，且已添加过白名单过了！","player_not_bind":"该玩家未绑定，无法为其添加白名单！"}]},{"regex":"^删白名单 (.+$)","permission":1,"actions":[{"type":"del_whitelist","content":"已将该玩家从所有服务器的白名单中移除!","player_not_bind":"无需删除白名单：该玩家未绑定！"}]},{"regex":"^解绑$","permission":0,"actions":[{"type":"unbind_whitelist","content":"解绑成功！","player_not_bind":"无需解绑：你还没有绑定！"}]},{"regex":"^帮助$","permission":0,"actions":[{"type":"group_message","content":"这是一条没用的帮助信息"}]},{"regex":"^状态$","permission":0,"actions":[{"type":"sys_info","content":"服务器状态\nCPU使用率：{cpu_usage}\n内存使用：{mem_usage_size}"}]}];
         let regex_data = JSON.stringify(regex_obj,null,'\t');
         var fd = fs.openSync(regex_json,'w');
         fs.writeSync(fd, regex_data);
@@ -306,10 +322,27 @@ function modules(e,re,type,content,waa0,waa1,pnb,succeed,failed){
                     console.log(`${err.message}`);
                 })
         };
+        break;
+
+        case "sys_info":{
+            osUtils.cpuUsage(function(cpu) {
+                let mem = osUtils.freememPercentage(function(m){
+                    return m
+                });
+                
+                let MEMsize = Math.pow(1024,3);
+                let sysinfo = {
+                    "mem_usage_precent":((1-mem)*100).toFixed(1)+"%",
+                    "mem_usage_size":((os.totalmem()-os.freemem())/MEMsize).toFixed(1)+"GB/"+(os.totalmem()/MEMsize).toFixed(0)+"GB",
+                    "cpu_usage":(cpu*100).toFixed(1)+"%"
+                }
+                let str = content.format(sysinfo)
+                bot.sendGroupMsg(groupID[0],str)
+            });
+        };
         break
     }
 }
-
 
 
 client.Connect();                       //建立WS客户端连接
@@ -319,13 +352,6 @@ client.ws.on("connect",function(con){   //WS客户端连接成功
     ws_send = con //装载全局ws对象
     let mobs = JSON.parse(fs.readFileSync(mobs_json))  //实体数据
     let pe = JSON.parse(fs.readFileSync(players_event_json));
-    String.prototype.format = function() {
-        var formatted = this;
-        for( var arg in arguments ) {
-            formatted = formatted.replace("{" + arg + "}", arguments[arg]);
-        }
-        return formatted;
-    };
 
     con.on("message",function(m){
         try
@@ -334,32 +360,31 @@ client.ws.on("connect",function(con){   //WS客户端连接成功
             let data = JSON.parse(TempData);
             let cause = data.cause;
             let e = data.params;
+            let info = {"player":e.sender}
 
             switch(cause)
             {
                 case "join":{
-                    let str = pe.player_join.format(e.sender)
+                    let str = pe.player_join.format(info)
                     bot.sendGroupMsg(groupID[0], str);
                 };break;
                 case "left":{
-                    let str = pe.player_left.format(e.sender)
+                    let str = pe.player_left.format(info)
                     bot.sendGroupMsg(groupID[0], str);
                 };break;
                 case "mobdie":{     //玩家死亡事件
                     if (e.mobname == e.mobtype)
                     {
-                        let srctype = e.srctype
-                        let diepl = e.mobname
-
+                        let info = {"player":e.mobname,"mob":mobs[e.srctype]}
                         for (var key in mobs){
-                            if(srctype == key){
-                                let str = pe.player_die.cause_by_mobs.format(diepl,mobs[srctype]);
+                            if(e.srctype == key){
+                                let str = pe.player_die.cause_by_mobs.format(info);
                                 bot.sendGroupMsg(groupID[0],str);
                                 break;
                             }
                         };
-                        if(srctype == "unknown"){
-                            let str = pe.player_die.cause_unknown.format(diepl);
+                        if(e.srctype == "unknown"){
+                            let str = pe.player_die.cause_unknown.format(info);
                             bot.sendGroupMsg(groupID[0],str)
                         }
                     }
@@ -390,7 +415,7 @@ client.ws.on("connect",function(con){   //WS客户端连接成功
             }
         }catch(err)
         {
-            console.log(motd+"异常信息：",err.message);
+            console.log("异常信息：",err.message);
         }
     })
     con.on('error', function(error) {
