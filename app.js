@@ -30,7 +30,7 @@ var iv = "1234567890123456";
 k = MD5.MD5(passwd).toUpperCase().substring(0,16);
 iv = MD5.MD5(passwd).toUpperCase().substring(16,32);
 
-String.prototype.format= function() {
+String.prototype.format= function() {       //文本格式化（占位符实现）
     if(arguments.length === 0) return this;
     var param = arguments[0], str= this;
     if(typeof(param) === 'object') {
@@ -63,43 +63,43 @@ function prepare(){
 		}
     }catch(err){
         logger("正则配置不存在，正在初始化...");
-        let regex_obj = [{"regex":"^百度$","permission":0,"actions":[{"type":"http_get","content":"http://www.baidu.com","succeed":"百度一下，你就知道","failed":"请求失败,请检查网络"}]},{"regex":"^查服$","permission":0,"actions":[{"type":"runcmd","content":"list"}]},{"regex":"^绑定 ([A-Za-z0-9 ]{4,20})$","permission":0,"actions":[{"type":"bind_whitelist","content":"白名单申请已发送，请等待管理员审核！","whitelist_already_apply":"你已经申请过白名单了，请勿重复提交！"}]},{"regex":"^关于我$","permission":0,"actions":[{"type":"bind_check_self","content":"我的信息：","player_not_bind":"请先绑定白名单！"}]},{"regex":"^查绑定 (.+$)","permission":0,"actions":[{"type":"bind_check","content":"查询结果：","player_not_bind":"该玩家未绑定，未查询到任何信息！"}]},{"regex":"^加白名单 (.+$)","permission":1,"actions":[{"type":"add_whitelist","content":"已将该玩家添加到所有服务器的白名单!","whitelist_already_add":"该玩家已经绑定，且已添加过白名单过了！","player_not_bind":"该玩家未绑定，无法为其添加白名单！"}]},{"regex":"^删白名单 (.+$)","permission":1,"actions":[{"type":"del_whitelist","content":"已将该玩家从所有服务器的白名单中移除!","player_not_bind":"无需删除白名单：该玩家未绑定！"}]},{"regex":"^解绑$","permission":0,"actions":[{"type":"unbind_whitelist","content":"解绑成功！","player_not_bind":"无需解绑：你还没有绑定！"}]},{"regex":"^帮助$","permission":0,"actions":[{"type":"group_message","content":"这是一条没用的帮助信息"}]},{"regex":"^状态$","permission":0,"actions":[{"type":"sys_info","content":"服务器状态\nCPU使用率：{cpu_usage}\n内存使用：{mem_usage_size}"}]}];
+        let regex_obj = [{"regex":"^百度$","permission":0,"actions":[{"type":"http_get","content":"http://www.baidu.com","succeed":"百度一下，你就知道","failed":"请求失败,请检查网络"}]},{"regex":"^查服$","permission":0,"actions":[{"type":"runcmd","content":"list"}]},{"regex":"^/cmd (.+$)","permission":1,"actions":[{"type":"runcmd_raw","content":"指令发送成功！"}]},{"regex":"^绑定 ([A-Za-z0-9 ]{4,20})$","permission":0,"actions":[{"type":"bind_whitelist","content":"您的Xbox ID“{player}”已绑定，请等待管理员开通白名单！"}]},{"regex":"^我的信息$","permission":0,"actions":[{"type":"bind_check_self","content":"\n你的信息："}]},{"regex":"^查绑定 (.+$)","permission":1,"actions":[{"type":"bind_check","content":"\n查询结果："}]},{"regex":"^加白名单 (.+$)","permission":1,"actions":[{"type":"add_whitelist","content":"已将“{player}”添加到所有服务器的白名单!"}]},{"regex":"^删白名单 (.+$)","permission":1,"actions":[{"type":"del_whitelist","content":"已将“{player}”从所有服务器的白名单中移除!"}]},{"regex":"^解绑$","permission":0,"actions":[{"type":"unbind_whitelist","content":"白名单解绑成功！"}]},{"regex":"^帮助$","permission":0,"actions":[{"type":"group_message","content":"这是一条没用的帮助信息"}]},{"regex":"^状态$","permission":0,"actions":[{"type":"sys_info","content":"服务器状态\nCPU使用：{cpu_usage}\n内存使用：{mem_usage}"}]}];
         let regex_data = JSON.stringify(regex_obj,null,'\t');
         var fd = fs.openSync(regex_json,'w');
         fs.writeSync(fd, regex_data);
         fs.closeSync(fd);
-        logger("正则配置创建成功！")
+        logger("正则配置创建成功！");
     }
 
     try{        //玩家事件配置初始化
         if(fs.openSync(players_event_json,'r')){
-			logger("正在加载玩家事件配置...") 
+			logger("正在加载玩家事件配置...");
 		}
     }catch(err){
         logger("玩家事件配置不存在，正在初始化...");
-        let players_event_obj = {"player_not_admin":"您不是管理员，无权执行该操作！","player_join":"玩家 {player} 加入了服务器","player_left":"玩家 {player} 离开了服务器","player_die":{"cause_by_mobs":"玩家 {player} 被 {mob} 杀死了","cause_unknown":"玩家 {player} 啪唧一下死掉了"}};
+        let players_event_obj = {"player_not_admin":"您不是管理员，无权执行该操作！","player_join":"玩家 {player} 加入了服务器","player_left":"玩家 {player} 离开了服务器","player_die":{"cause_by_mobs":"玩家 {player} 被 {mob} 杀死了","cause_unknown":"玩家 {player} 啪唧一下死掉了"},"member_left":"{member_xboxid}（QQ:{member_qqid}）退出了群聊，正撤销其所有绑定","member_not_bind":"未查询到相关绑定信息！","member_already_bind":"你已经绑定过了！","xboxid_already_bind":"该Xbox ID已被 {bad_qqid} 绑定，请联系管理员解决","member_already_add":"该玩家已经添加过白名单了！","server_connect_failed":"服务器未开启或连接中断，请稍后重试！"};
         let players_event_data = JSON.stringify(players_event_obj,null,'\t');
         var fd = fs.openSync(players_event_json,'w');
         fs.writeSync(fd, players_event_data);
         fs.closeSync(fd);
-        logger("玩家事件配置创建成功！")
+        logger("玩家事件配置创建成功！");
     }
 
     try{        //玩家数据初始化
         if(fs.openSync(players_info_json,'r')){
-			logger("正在加载玩家数据...") 
+			logger("正在加载玩家数据...");
 		}
     }catch(err){
         logger("玩家数据不存在，正在初始化...")
         var file_open = fs.openSync(players_info_json,'w');
         fs.writeSync(file_open, "[]");
-        fs.closeSync(file_open)
-        logger("玩家数据初始化完成！")
+        fs.closeSync(file_open);
+        logger("玩家数据初始化完成！");
     }
 
     try{        //实体数据初始化
         if(fs.openSync(mobs_json,'r')){
-			logger("正在加载实体数据...") 
+			logger("正在加载实体数据...");
 		}
     }
     catch(err){
@@ -109,20 +109,32 @@ function prepare(){
         var fd = fs.openSync(mobs_json,'w');
         fs.writeSync(fd, mobs_data);
         fs.closeSync(fd);
-        logger("实体数据创建成功！")
+        logger("实体数据创建成功！");
     }
 };
 prepare();
 
+bot.on("notice.group.decrease",function(e){     //监听成员退群事件，自动解绑白名单
+    if(e.group_id == groupID){
+        let players_info_tmp = JSON.parse(fs.readFileSync(players_info_json));
+        let qqid = e.user_id;
+        let pnb = JSON.parse(fs.readFileSync(players_event_json)).member_not_bind;
+        let s = players_info_tmp.indexOf(players_info_tmp.filter(d=>d.qqid === qqid)[0]);
+        let bye = {"member_xboxid":players_info_tmp[s].name,"member_qqid":qqid};
+        let scf = JSON.parse(fs.readFileSync(players_event_json)).server_connect_failed;
+        let message_type = "group";
+        let content = JSON.parse(fs.readFileSync(players_event_json)).member_left.format(bye);
+        return players_whitelist_unbind(e,players_info_tmp,qqid,message_type,content,pnb,scf);
+    }
+})
 
-
-bot.on("message.group", function(e){    //开始监听群消息
+bot.on("message.group", function(e){    //监听群消息
     if(e.group_id == groupID){
         logic_main(e)
     }
 })
 
-//公共方法1：玩家权限判断
+//公共方法：玩家权限判断
 function permission(e) {
     let players_info = JSON.parse(fs.readFileSync(players_info_json))
     for(var i=0 ; i<players_info.length ; i++){
@@ -140,17 +152,17 @@ function permission(e) {
     }
 }
 
-//公共方法2：玩家数据读写
-function file_rw(e,players_info_tmp,content){
+//公共方法：玩家数据读写
+function file_rw(e,players_info_tmp,message_type,content_processed){
     let players_info = JSON.stringify(players_info_tmp,null,'\t');
     let open_players_info = fs.openSync(players_info_json,'w');
     fs.writeSync(open_players_info, players_info);
     fs.closeSync(open_players_info);
-    e.reply("[CQ:at,qq="+e.user_id+"]\n"+content);
+    return reply_type(e,message_type,content_processed);
 }
 
-//公共方法3：玩家信息检索（加白名单）
-function players_info_select_add(e,players_info_tmp,qqid,content,pnb){
+//公共方法：玩家信息检索
+function players_info_select(e,players_info_tmp,qqid,content,pnb){
     if(players_info_tmp.some((val) => val.qqid===qqid)){
         let s = players_info_tmp.indexOf(players_info_tmp.filter(d=>d.qqid === qqid)[0]);
         let reply_xboxid = players_info_tmp[s].name
@@ -182,16 +194,37 @@ function players_info_select_add(e,players_info_tmp,qqid,content,pnb){
     }
 }
 
-//公共方法4：玩家信息检索（删白名单）
-function players_info_select_del(e,players_info_tmp,qqid,content,pnb){
+//公共方法：解绑白名单
+function players_whitelist_unbind(e,players_info_tmp,qqid,message_type,content,pnb,scf){
     if(players_info_tmp.some( (val) => val.qqid===qqid)){
         let s = players_info_tmp.indexOf(players_info_tmp.filter(d=>d.qqid === qqid)[0]);
-        ws_send.sendUTF(PHelper.GetRuncmdPack(k,iv,"whitelist remove \""+players_info_tmp[s].name+"\""));
-        players_info_tmp.splice(s,1);
-        return file_rw(e,players_info_tmp,content)
+        let plobj = {"player":players_info_tmp[s].name};
+        let content_processed = content.format(plobj);
+        try{
+            ws_send.sendUTF(PHelper.GetRuncmdPack(k,iv,"whitelist remove \""+players_info_tmp[s].name+"\""));
+            players_info_tmp.splice(s,1);
+            return file_rw(e,players_info_tmp,message_type,content_processed);
+        }
+        catch(err){
+            e.reply("[CQ:at,qq="+e.user_id+"]\n"+scf);   //服务器连接中断
+        }
     }
     else{
-        e.reply("[CQ:at,qq="+qqid+"]\n"+pnb);
+        let content_processed = pnb;
+        return reply_type(e,message_type,content_processed);
+    }
+}
+
+//公共方法：群消息发送方式
+function reply_type(e,message_type,content_processed){
+    switch (message_type){
+        case "group":
+            bot.sendGroupMsg(groupID[0],content_processed);
+        break;
+
+        case "at":
+            e.reply("[CQ:at,qq="+e.user_id+"]\n"+content_processed);
+        break;
     }
 }
 
@@ -213,10 +246,12 @@ function logic_main(e){
                     let content = reg[r].actions[b].content;
                     let succeed = reg[r].actions[b].succeed;
                     let failed = reg[r].actions[b].failed;
-                    let waa0 = reg[r].actions[b].whitelist_already_apply;
-                    let waa1 = reg[r].actions[b].whitelist_already_add;
-                    let pnb = reg[r].actions[b].player_not_bind;
-                    modules(e,re,type,content,waa0,waa1,pnb,succeed,failed);
+                    let mab = pe.member_already_bind;
+                    let xab = pe.xboxid_already_bind;
+                    let maa = pe.member_already_add;
+                    let pnb = pe.member_not_bind;
+                    let scf = pe.server_connect_failed;
+                    modules(e,re,type,content,mab,xab,maa,pnb,scf,succeed,failed);
                 }
             }
         }
@@ -224,11 +259,15 @@ function logic_main(e){
 }   
 
 //功能模块（白名单加减、自定义命令等）
-function modules(e,re,type,content,waa0,waa1,pnb,succeed,failed){
-    switch(type)
-    {
+function modules(e,re,type,content,mab,xab,maa,pnb,scf,succeed,failed){
+    switch(type){
         case "runcmd":{     //执行命令
-            ws_send.sendUTF(PHelper.GetRuncmdPack(k,iv,content))
+            try{
+                ws_send.sendUTF(PHelper.GetRuncmdPack(k,iv,content));
+            }
+            catch(err){
+                bot.sendGroupMsg(groupID[0],scf);
+            };
         };
         break;
 
@@ -240,13 +279,22 @@ function modules(e,re,type,content,waa0,waa1,pnb,succeed,failed){
         case "bind_whitelist":{    //自助绑定白名单（玩家）
             let xboxid = e.raw_message.replace(re,"$1");
             let players_info_tmp = JSON.parse(fs.readFileSync(players_info_json));
-            if(players_info_tmp.some( (val) => val.qqid===e.user_id)){
-                e.reply("[CQ:at,qq="+e.user_id+"]\n"+waa0);
+            let message_type = "at";
+            if(players_info_tmp.some((val) => val.qqid===e.user_id)){   //玩家已经绑定过了
+                e.reply("[CQ:at,qq="+e.user_id+"]\n"+mab);
+            }
+            else if(players_info_tmp.some((val) => val.name===xboxid)){ //玩家xboxid被别人绑定了
+                let s = (players_info_tmp.indexOf(players_info_tmp.filter(d=>d.name===xboxid)[0]))
+                let bad_guy = {"bad_qqid":players_info_tmp[s].qqid};
+                let str = xab.format(bad_guy)
+                e.reply("[CQ:at,qq="+e.user_id+"]\n"+str);
             }
             else{
                 let add_xboxid = {"name":xboxid,"qqid":e.user_id,"permission":0,"enable":false};
+                let plobj = {"player":xboxid} //新建一个玩家对象
+                let content_processed = content.format(plobj);
                 players_info_tmp.push(add_xboxid);
-                return file_rw(e,players_info_tmp,content)
+                return file_rw(e,players_info_tmp,message_type,content_processed)
             }
         };
         break;
@@ -254,21 +302,29 @@ function modules(e,re,type,content,waa0,waa1,pnb,succeed,failed){
         case "add_whitelist":{      //加白名单(管理员)
             for (var f=0 ; f<e.message.length ; f++){
                 let at_qqid = e.message[f].data.qq
+                let message_type = "group";
                 let players_info_tmp = JSON.parse(fs.readFileSync(players_info_json));
                 if(e.message[f].type == "at" ){
                     if(players_info_tmp.some( (val) => val.qqid===at_qqid)){
                         let s = (players_info_tmp.indexOf(players_info_tmp.filter(d=>d.qqid===at_qqid)[0]))
+                        let plobj = {"player":players_info_tmp[s].name}; //新建一个玩家对象
+                        let content_processed = content.format(plobj);
                         if (players_info_tmp[s].enable){
-                            e.reply("[CQ:at,qq="+e.user_id+"]\n"+waa1)
+                            e.reply("[CQ:at,qq="+e.user_id+"]\n"+maa.format(plobj));
                         }
                         else{
-                            ws_send.sendUTF(PHelper.GetRuncmdPack(k,iv,"whitelist add \""+players_info_tmp[s].name+"\""))
-                            players_info_tmp[s].enable = true;
-                            return file_rw(e,players_info_tmp,content)
+                            try{
+                                ws_send.sendUTF(PHelper.GetRuncmdPack(k,iv,"whitelist add \""+players_info_tmp[s].name+"\""))
+                                players_info_tmp[s].enable = true;
+                                return file_rw(e,players_info_tmp,message_type,content_processed);
+                            }
+                            catch(err){
+                                bot.sendGroupMsg(groupID[0],scf);
+                            }
                         }
                     }
                     else{
-                        e.reply("[CQ:at,qq="+e.user_id+"]\n"+pnb);
+                        bot.sendGroupMsg(groupID[0],pnb);
                     }
                 }
             }
@@ -278,7 +334,7 @@ function modules(e,re,type,content,waa0,waa1,pnb,succeed,failed){
         case "bind_check_self":{   //查询本人绑定状态
             let players_info_tmp = JSON.parse(fs.readFileSync(players_info_json));
             let qqid = e.user_id;
-            players_info_select_add(e,players_info_tmp,qqid,content,pnb)
+            players_info_select(e,players_info_tmp,qqid,content,pnb)
         };
         break
 
@@ -287,7 +343,7 @@ function modules(e,re,type,content,waa0,waa1,pnb,succeed,failed){
                 let qqid = e.message[j].data.qq
                 let players_info_tmp = JSON.parse(fs.readFileSync(players_info_json));
                 if(e.message[j].type == "at" ){
-                    players_info_select_add(e,players_info_tmp,qqid,content,pnb);
+                    players_info_select(e,players_info_tmp,qqid,content,pnb);
                 }
             }
         };
@@ -296,7 +352,8 @@ function modules(e,re,type,content,waa0,waa1,pnb,succeed,failed){
         case "unbind_whitelist":{   //解绑（玩家）
             let qqid = e.user_id
             let players_info_tmp = JSON.parse(fs.readFileSync(players_info_json));
-            players_info_select_del(e,players_info_tmp,qqid,content,pnb)
+            let message_type = "at";
+            players_whitelist_unbind(e,players_info_tmp,qqid,message_type,content,pnb,scf);
         };
         break;
 
@@ -305,7 +362,8 @@ function modules(e,re,type,content,waa0,waa1,pnb,succeed,failed){
                 if(e.message[f].type == "at" ){
                     let qqid = e.message[f].data.qq
                     let players_info_tmp = JSON.parse(fs.readFileSync(players_info_json));
-                    players_info_select_del(e,players_info_tmp,qqid,content,pnb)
+                    let message_type = "group";
+                    players_whitelist_unbind(e,players_info_tmp,qqid,message_type,content,pnb,scf)
                 }
             }
 
@@ -324,7 +382,7 @@ function modules(e,re,type,content,waa0,waa1,pnb,succeed,failed){
         };
         break;
 
-        case "sys_info":{
+        case "sys_info":{       //查询服务器状态
             osUtils.cpuUsage(function(cpu) {
                 let mem = osUtils.freememPercentage(function(m){
                     return m
@@ -332,15 +390,26 @@ function modules(e,re,type,content,waa0,waa1,pnb,succeed,failed){
                 
                 let MEMsize = Math.pow(1024,3);
                 let sysinfo = {
-                    "mem_usage_precent":((1-mem)*100).toFixed(1)+"%",
-                    "mem_usage_size":((os.totalmem()-os.freemem())/MEMsize).toFixed(1)+"GB/"+(os.totalmem()/MEMsize).toFixed(0)+"GB",
+                    "mem_usage":((os.totalmem()-os.freemem())/MEMsize).toFixed(1)+"GB/"+(os.totalmem()/MEMsize).toFixed(0)+"GB（"+((1-mem)*100).toFixed(1)+"%）",
                     "cpu_usage":(cpu*100).toFixed(1)+"%"
                 }
                 let str = content.format(sysinfo)
                 bot.sendGroupMsg(groupID[0],str)
             });
         };
-        break
+        break;
+
+        case "runcmd_raw":{
+            let cmd = e.raw_message.replace(re,"$1");
+            try{
+                ws_send.sendUTF(PHelper.GetRuncmdPack(k,iv,cmd));
+                e.reply("[CQ:at,qq="+e.user_id+"]\n"+content)
+            }
+            catch(err){
+                e.reply("[CQ:at,qq="+e.user_id+"]\n"+scf)
+            }
+        };
+        break;
     }
 }
 
@@ -348,15 +417,13 @@ function modules(e,re,type,content,waa0,waa1,pnb,succeed,failed){
 client.Connect();                       //建立WS客户端连接
 client.ws.on("connect",function(con){   //WS客户端连接成功
     logger("WS服务器连接成功！");
-    setTimeout(function(){bot.sendGroupMsg(groupID[0], "服务器连接成功！")},3000);
+    setTimeout(function(){bot.sendGroupMsg(groupID[0], "服务器连接成功！")},2000);
     ws_send = con //装载全局ws对象
     let mobs = JSON.parse(fs.readFileSync(mobs_json))  //实体数据
     let pe = JSON.parse(fs.readFileSync(players_event_json));
 
-
     con.on("message",function(m){
-        try
-        {
+        try{
             var TempData = AES.decrypt(client.k,client.iv,JSON.parse(m.utf8Data).params.raw);
             let data = JSON.parse(TempData);
             let cause = data.cause;
@@ -418,8 +485,8 @@ client.ws.on("connect",function(con){   //WS客户端连接成功
                     logger("数据包解析失败：",e.msg)
                 };break;
             }
-        }catch(err)
-        {
+        }
+        catch(err){
             console.log("异常信息：",err.message);
         }
     })
@@ -428,13 +495,12 @@ client.ws.on("connect",function(con){   //WS客户端连接成功
     });
     con.on('close', function() {
         logger("WS连接已关闭！");
-        bot.sendGroupMsg(groupID[0],"服务器已断开连接")
-        setTimeout(function(){client.Connect()},5000)
+        bot.sendGroupMsg(groupID[0],"服务器已关闭");
+        setTimeout(function(){client.Connect()},5000);
     });
 });
 
 client.ws.on('connectFailed', function(error) {     //WS客户端连接失败
     logger("WS连接失败: " + error.toString());
-    setTimeout(function(){client.Connect()},5000)
-   
+    setTimeout(function(){client.Connect()},5000);
 });
