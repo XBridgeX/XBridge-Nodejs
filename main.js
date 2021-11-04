@@ -3,7 +3,7 @@ var fs = require('fs');
 //let path = require('path');
 let data = "./config/global_setting.json"
 let datapath = "./config"
-let ver = "1.0.0_beta11031646"
+let ver = "1.0.0_beta11050145"
 
 function logger(e){
 	console.log(e)
@@ -105,9 +105,14 @@ function ocl_core(){
 
     process.stdin.on("data", (input)=>{
         let i = input.toString().trim();
-        if (i == "stop"){
-            logger("XBridgeN即将退出...")
-            setTimeout(function(){process.exit(0)},1000)
+        switch(i){
+            default:
+                logger("[XBridgeN CLI] 未知指令。请检查输入是否正确。")
+            break;
+            case "stop":
+                logger("XBridgeN即将退出...")
+                setTimeout(function(){process.exit(0)},1000);
+            break;
         }
     })
 }
