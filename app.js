@@ -8,6 +8,7 @@ const MD5 = require("./Utils/MD5");
 const http = require('http');
 const osUtils = require('os-utils');
 const os = require('os');
+const diskinfo = require('diskinfo')
 const PHelper = require("./Utils/PackHelper")   //WS发包
 var fs = require('fs');
 var ws_send = null //初始化全局websocket对象
@@ -60,7 +61,7 @@ function prepare(){
 		}
     }catch(err){
         console.log("[XBridgeN] 正则配置不存在，正在初始化...");
-        let regex_obj = [{"regex":"^百度$","permission":0,"actions":[{"type":"http_get","content":"http://www.baidu.com","succeed":"百度一下，你就知道","failed":"请求失败,请检查网络"}]},{"regex":"^查云黑 (xboxid|qq) (.+)$","permission":0,"actions":[{"type":"blackbe_check","content":"[云黑查询结果]"}]},{"regex":"^查服$","permission":0,"actions":[{"type":"runcmd","content":"list"}]},{"regex":"^/cmd (.+$)","permission":1,"actions":[{"type":"runcmd_raw","content":"指令发送成功！"}]},{"regex":"^绑定 ([A-Za-z0-9 ]{4,20})$","permission":0,"actions":[{"type":"bind_whitelist","content":"您的Xbox ID“{player}”已绑定，请等待管理员开通白名单！"}]},{"regex":"^我的信息$","permission":0,"actions":[{"type":"bind_check_self","content":"\n你的信息："}]},{"regex":"^查绑定 (.+$)","permission":1,"actions":[{"type":"bind_check","content":"\n查询结果："}]},{"regex":"^加白名单 (.+$)","permission":1,"actions":[{"type":"add_whitelist","content":"已将“{player}”添加到所有服务器的白名单!"}]},{"regex":"^删白名单 (.+$)","permission":1,"actions":[{"type":"del_whitelist","content":"已将“{member_xboxid}”从所有服务器的白名单中移除!"}]},{"regex":"^解绑$","permission":0,"actions":[{"type":"unbind_whitelist","content":"白名单解绑成功！"}]},{"regex":"^帮助$","permission":0,"actions":[{"type":"group_message","content":"这是一条没用的帮助信息"}]},{"regex":"^状态$","permission":0,"actions":[{"type":"sys_info","content":"服务器状态\nCPU使用：{cpu_usage}\n内存使用：{mem_usage}\n已运行时间：{sys_uptime}"}]}];
+        let regex_obj = [{"regex":"^百度$","permission":0,"actions":[{"type":"http_get","content":"http://www.baidu.com","succeed":"百度一下，你就知道","failed":"请求失败,请检查网络"}]},{"regex":"^查云黑 (xboxid|qq) (.+)$","permission":0,"actions":[{"type":"blackbe_check","content":"[云黑查询结果]"}]},{"regex":"^查服$","permission":0,"actions":[{"type":"runcmd","content":"list"}]},{"regex":"^自杀$","permission":0,"actions":[{"type":"runcmd","content":"kill {player}"}]},{"regex":"^/cmd (.+$)","permission":1,"actions":[{"type":"runcmd_raw","content":"指令发送成功！"}]},{"regex":"^绑定 ([A-Za-z0-9 ]{4,20})$","permission":0,"actions":[{"type":"bind_whitelist","content":"您的Xbox ID“{player}”已绑定，请等待管理员开通白名单！"}]},{"regex":"^我要白名单$","permission":0,"actions":[{"type":"add_whitelist_self","content":"您的Xbox ID“{player}”已添加到服务器白名单！"}]},{"regex":"^我的信息$","permission":0,"actions":[{"type":"bind_check_self","content":"\n您的绑定信息："}]},{"regex":"^查绑定 (.+$)","permission":1,"actions":[{"type":"bind_check","content":"\n查询结果："}]},{"regex":"^加白名单 (.+$)","permission":1,"actions":[{"type":"add_whitelist","content":"已将“{player}”添加到所有服务器的白名单!"}]},{"regex":"^删白名单 (.+$)","permission":1,"actions":[{"type":"del_whitelist","content":"已将“{player}”从所有服务器的白名单中移除!"}]},{"regex":"^解绑$","permission":0,"actions":[{"type":"unbind_whitelist","content":"白名单解绑成功！"}]},{"regex":"^帮助$","permission":0,"actions":[{"type":"group_message","content":"这是一条没用的帮助信息"}]},{"regex":"^状态$","permission":0,"actions":[{"type":"sys_info","content":"服务器状态\nCPU使用：{cpu_usage}\n内存使用：{mem_usage}\n磁盘空间使用：{disk_usage}\n已运行时间：{sys_uptime}"}]}];
         let regex_data = JSON.stringify(regex_obj,null,'\t');
         var fd = fs.openSync(regex_json,'w');
         fs.writeSync(fd, regex_data);
@@ -74,7 +75,7 @@ function prepare(){
 		}
     }catch(err){
         console.log("[XBridgeN] 玩家事件配置不存在，正在初始化...");
-        let players_event_obj = {"black_be":{"join_group_detection":true,"autonomous_check":true},"player_join":{"enable":true,"message":"玩家 {player} 加入了服务器"},"player_left":{"enable":true,"message":"玩家 {player} 离开了服务器"},"player_die":{"enable":true,"cause_by_mobs":"玩家 {player} 被 {mob} 杀死了","cause_unknown":"玩家 {player} 啪唧一下死掉了"},"player_chat":{"enable":true,"toServer":"§b[{group_name}] §a<{sender}> {content}","toGroup":"[{server_name}] <{player}>\n{content}"},"whitelist_helper":{"enable":true,"member_left_with_bind":"{player}（QQ:{member_qqid}）退出了群聊，正撤销其所有绑定","member_not_bind":"未查询到相关绑定信息！","member_already_bind":"你已经绑定过了！","xboxid_already_bind":"该Xbox ID已被 {bad_qqid} 绑定，请联系管理员解决","member_already_add":"该玩家已经添加过白名单了！"},"runcmd_nofication":true,"player_not_admin":"您不是管理员，无权执行该操作！","member_left":"成员 {player} 退出了群聊","server_connect_failed":"服务器未开启或连接中断，请稍后重试！"};
+        let players_event_obj = {"join_group_detection":{"enable":true,"request_auto_process":true},"player_join":{"enable":true,"message":"玩家 {player} 加入了服务器"},"player_left":{"enable":true,"message":"玩家 {player} 离开了服务器"},"player_die":{"enable":true,"cause_by_mobs":"玩家 {player} 被 {mob} 杀死了","cause_unknown":"玩家 {player} 啪唧一下死掉了"},"player_chat":{"enable":true,"toServer":"§b[{group_name}] §a<{sender}>§r {content}","toGroup":"[{server_name}] <{player}>\n{content}"},"whitelist_helper":{"enable":true,"member_left_with_bind":"{player}（QQ:{member_qqid}）退出了群聊，正撤销其所有绑定","member_not_bind":"未查询到相关绑定信息！","member_already_bind":"你已经绑定过了！","xboxid_already_bind":"该Xbox ID已被 {bad_qqid} 绑定，请联系管理员解决","member_already_add":"该玩家已经添加过白名单了！"},"runcmd_nofication":true,"player_not_admin":"您不是管理员，无权执行该操作！","member_left":"成员 {member_qqid} 退出了群聊","server_connect_failed":"服务器未开启或连接中断，请稍后重试！"};
         let players_event_data = JSON.stringify(players_event_obj,null,'\t');
         var fd = fs.openSync(players_event_json,'w');
         fs.writeSync(fd, players_event_data);
@@ -111,19 +112,40 @@ function prepare(){
 };
 prepare();
 
-bot.on("request.group.add",function(e){         //监听加群事件
+
+bot.on("request.group.add",function(e){         //监听加群事件，云黑检测
+    console.log(e)
     let pe = JSON.parse(fs.readFileSync(players_event_json));
-    if(pe.join_group_detection){
+    if(pe.join_group_detection.enable){
         let url = blackbe_url_qq+e.user_id;
         let notice_type = "join_group";
         let be_target = e.user_id;
         let content = "";
         return blackbe_core(e,url,notice_type,be_target,content)
+    };
+});
+
+bot.on("notice.group.decrease",function(e){     //监听退群事件，自动解绑白名单
+    if(e.group_id == groupID){
+        let players_info_tmp = JSON.parse(fs.readFileSync(players_info_json));
+        let qqid = e.user_id;
+        let pnb = JSON.parse(fs.readFileSync(players_event_json)).member_left;
+        let scf = JSON.parse(fs.readFileSync(players_event_json)).server_connect_failed;
+        let message_type = "group";
+        let content = JSON.parse(fs.readFileSync(players_event_json)).whitelist_helper.member_left_with_bind;
+        return players_whitelist_unbind(e,players_info_tmp,qqid,message_type,content,pnb,scf);
     }
-})
+});
 
+bot.on("message.group", function(e){    //监听群消息
+    if(e.group_id == groupID){
+        logic_main(e)
+    }
+});
 
-function blackbe_core(e,url,notice_type,be_target,content){     //云黑核心
+//公共方法：云黑核心
+function blackbe_core(e,url,notice_type,be_target,content){
+    let pe = JSON.parse(fs.readFileSync(players_event_json));
     http.get(url,(res) => {
         var result_json = "";
         res.on("data",(data)=>{
@@ -141,7 +163,7 @@ function blackbe_core(e,url,notice_type,be_target,content){     //云黑核心
                     var nickname = get_data.data.name;
                     var result = get_data.message;
                     var details = "\n“"+get_data.data.info+"”";
-                    var operation = false;
+                    var operation = "云黑检测到你存在疑似违规记录";
                     var action = "拒绝加群";
                 };
                 break;
@@ -150,7 +172,7 @@ function blackbe_core(e,url,notice_type,be_target,content){     //云黑核心
                     var nickname = get_data.data.name;
                     var result = get_data.message;
                     var details = "\n“"+get_data.data.info+"”";
-                    var operation = false;
+                    var operation = "云黑检测到你存在违规记录";
                     var action = "拒绝加群";
                 };
                 break;
@@ -167,7 +189,12 @@ function blackbe_core(e,url,notice_type,be_target,content){     //云黑核心
 
             switch(notice_type){
                 case "join_group":{
-                    bot.setGroupAddRequest(e.flag, operation);
+                    if(pe.join_group_detection.request_auto_process){
+                        bot.setGroupAddRequest(e.flag, operation);
+                    }
+                    else{
+                        var action = "等待管理员处理"
+                    }
                     bot.sendGroupMsg(groupID[0],"[加群通知]\n昵称："+nickname+"\nQQ："+e.user_id+"\n验证消息：\n“"+e.comment+"”\n云黑查询结果："+result+"\n详情："+details+"\n执行动作："+action);
                 };
                 break;
@@ -184,25 +211,6 @@ function blackbe_core(e,url,notice_type,be_target,content){     //云黑核心
         bot.sendGroupMsg(groupID[0],"[云黑查询]\n云黑查询失败，网络问题："`${err.message}`);
     })
 }
-
-
-bot.on("notice.group.decrease",function(e){     //监听成员退群事件，自动解绑白名单
-    if(e.group_id == groupID){
-        let players_info_tmp = JSON.parse(fs.readFileSync(players_info_json));
-        let qqid = e.user_id;
-        let pnb = JSON.parse(fs.readFileSync(players_event_json)).member_left;
-        let scf = JSON.parse(fs.readFileSync(players_event_json)).server_connect_failed;
-        let message_type = "group";
-        let content = JSON.parse(fs.readFileSync(players_event_json)).whitelist_helper.member_left_with_bind;
-        return players_whitelist_unbind(e,players_info_tmp,qqid,message_type,content,pnb,scf);
-    }
-})
-
-bot.on("message.group", function(e){    //监听群消息
-    if(e.group_id == groupID){
-        logic_main(e)
-    }
-})
 
 //公共方法：玩家权限判断
 function permission(e) {
@@ -264,7 +272,34 @@ function players_info_select(e,players_info_tmp,qqid,content,pnb){
     }
 }
 
-//公共方法：解绑白名单
+//公共方法：白名单绑定
+function players_whitelist_bind(e,message_type,qqid,maa,content,scf,pnb){
+    let players_info_tmp = JSON.parse(fs.readFileSync(players_info_json));
+    if(players_info_tmp.some( (val) => val.qqid===qqid)){
+        
+        let s = (players_info_tmp.indexOf(players_info_tmp.filter(d=>d.qqid===qqid)[0]))
+        let plobj = {"player":players_info_tmp[s].name}; //新建一个玩家对象
+        let content_processed = content.format(plobj);
+        if (players_info_tmp[s].enable){
+            e.reply("[CQ:at,qq="+e.user_id+"]\n"+maa.format(plobj));
+        }
+        else{
+            try{
+                ws_send.sendUTF(PHelper.GetRuncmdPack(k,iv,"whitelist add \""+players_info_tmp[s].name+"\""))
+                players_info_tmp[s].enable = true;
+                return file_rw(e,players_info_tmp,message_type,content_processed);
+            }
+            catch(err){
+                bot.sendGroupMsg(groupID[0],scf);
+            }
+        }
+    }
+    else{
+        bot.sendGroupMsg(groupID[0],pnb);
+    }
+}
+
+//公共方法：白名单解绑
 function players_whitelist_unbind(e,players_info_tmp,qqid,message_type,content,pnb,scf){
     if(players_info_tmp.some( (val) => val.qqid===qqid)){
         let s = players_info_tmp.indexOf(players_info_tmp.filter(d=>d.qqid === qqid)[0]);
@@ -338,12 +373,21 @@ function logic_main(e){
     }
 }   
 
-//功能模块（白名单加减、自定义命令等）
+//功能模块
 function modules(e,re,pe,type,content,mab,xab,maa,pnb,scf,succeed,failed){
     switch(type){
         case "runcmd":{     //执行命令
             try{
-                ws_send.sendUTF(PHelper.GetRuncmdPack(k,iv,content));
+                let players_info_tmp = JSON.parse(fs.readFileSync(players_info_json));
+                if(players_info_tmp.some((val) => val.qqid===e.user_id)){
+                    let s = (players_info_tmp.indexOf(players_info_tmp.filter(d=>d.qqid===e.user_id)[0]))
+                    let plobj = {"player":players_info_tmp[s].name};
+                    let content_process = content.format(plobj);
+                    ws_send.sendUTF(PHelper.GetRuncmdPack(k,iv,content_process));
+                }
+                else{
+                    ws_send.sendUTF(PHelper.GetRuncmdPack(k,iv,content));
+                }
             }
             catch(err){
                 bot.sendGroupMsg(groupID[0],scf);
@@ -375,7 +419,8 @@ function modules(e,re,pe,type,content,mab,xab,maa,pnb,scf,succeed,failed){
                     let plobj = {"player":xboxid} //新建一个玩家对象
                     let content_processed = content.format(plobj);
                     players_info_tmp.push(add_xboxid);
-                    return file_rw(e,players_info_tmp,message_type,content_processed)
+                    bot.setGroupCard(groupID[0], e.user_id, xboxid);
+                    return file_rw(e,players_info_tmp,message_type,content_processed);
                 }
             }
         };
@@ -384,33 +429,21 @@ function modules(e,re,pe,type,content,mab,xab,maa,pnb,scf,succeed,failed){
         case "add_whitelist":{      //加白名单(管理员)
             if(pe.whitelist_helper.enable){
                 for (var f=0 ; f<e.message.length ; f++){
-                    let at_qqid = e.message[f].data.qq
-                    let message_type = "group";
-                    let players_info_tmp = JSON.parse(fs.readFileSync(players_info_json));
+                    let qqid = e.message[f].data.qq
                     if(e.message[f].type == "at" ){
-                        if(players_info_tmp.some( (val) => val.qqid===at_qqid)){
-                            let s = (players_info_tmp.indexOf(players_info_tmp.filter(d=>d.qqid===at_qqid)[0]))
-                            let plobj = {"player":players_info_tmp[s].name}; //新建一个玩家对象
-                            let content_processed = content.format(plobj);
-                            if (players_info_tmp[s].enable){
-                                e.reply("[CQ:at,qq="+e.user_id+"]\n"+maa.format(plobj));
-                            }
-                            else{
-                                try{
-                                    ws_send.sendUTF(PHelper.GetRuncmdPack(k,iv,"whitelist add \""+players_info_tmp[s].name+"\""))
-                                    players_info_tmp[s].enable = true;
-                                    return file_rw(e,players_info_tmp,message_type,content_processed);
-                                }
-                                catch(err){
-                                    bot.sendGroupMsg(groupID[0],scf);
-                                }
-                            }
-                        }
-                        else{
-                            bot.sendGroupMsg(groupID[0],pnb);
-                        }
+                        let message_type = "group";
+                        players_whitelist_bind(e,message_type,qqid,maa,content,scf,pnb)
                     }
                 }
+            }
+        };
+        break;
+
+        case "add_whitelist_self":{     //自助加白名单
+            if(pe.whitelist_helper.enable){
+                let message_type = "at";
+                let qqid = e.user_id;
+                return players_whitelist_bind(e,message_type,qqid,maa,content,scf,pnb);
             }
         };
         break;
@@ -473,32 +506,30 @@ function modules(e,re,pe,type,content,mab,xab,maa,pnb,scf,succeed,failed){
         break;
 
         case "blackbe_check":{       //查云黑
-            if (pe.black_be.autonomous_check){
-                let be_type = e.raw_message.replace(re,"$1");
-                let be_target = e.raw_message.replace(re,"$2");
-                let notice_type = "autonomous_check";
+            let be_type = e.raw_message.replace(re,"$1");
+            let be_target = e.raw_message.replace(re,"$2");
+            let notice_type = "autonomous_check";
 
-                switch (be_type){
-                    case "xboxid":{
-                        if(be_target != undefined){
-                            var url = blackbe_url_id+be_target;
-                            return blackbe_core(e,url,notice_type,be_target,content);
-                        };
+            switch (be_type){
+                case "xboxid":{
+                    if(be_target != undefined){
+                        var url = blackbe_url_id+be_target;
+                        return blackbe_core(e,url,notice_type,be_target,content);
                     };
-        
-                    case "qq":{
-                        let rr = new RegExp(/[1-9][0-9]{4,}/,"g");
-                        if(be_target != undefined){
-                            for (var y=0 ; y<e.message.length ; y++){
-                                if(e.message[y].type == "at" ){     //如果是@消息
-                                    var qqid = e.message[y].data.qq;
-                                    var url = blackbe_url_qq+qqid;
-                                    return blackbe_core(e,url,notice_type,be_target,content);
-                                }
-                                else if (be_target == be_target.match(rr)){     //如果不是@消息，则匹配qq正则
-                                    var url = blackbe_url_qq+be_target;
-                                    return blackbe_core(e,url,notice_type,be_target,content);
-                                };
+                };
+    
+                case "qq":{
+                    let rr = new RegExp(/[1-9][0-9]{4,}/,"g");
+                    if(be_target != undefined){
+                        for (var y=0 ; y<e.message.length ; y++){
+                            if(e.message[y].type == "at" ){     //如果是@消息
+                                var qqid = e.message[y].data.qq;
+                                var url = blackbe_url_qq+qqid;
+                                return blackbe_core(e,url,notice_type,be_target,content);
+                            }
+                            else if (be_target == be_target.match(rr)){     //如果不是@消息，则匹配qq正则
+                                var url = blackbe_url_qq+be_target;
+                                return blackbe_core(e,url,notice_type,be_target,content);
                             };
                         };
                     };
@@ -519,14 +550,22 @@ function modules(e,re,pe,type,content,mab,xab,maa,pnb,scf,succeed,failed){
                 let hour = Math.floor( (os.uptime() - day*24*3600) / 3600); 
                 let minute = Math.floor( (os.uptime() - day*24*3600 - hour*3600) /60 ); 
                 let second = os.uptime() - day*24*3600 - hour*3600 - minute*60; 
-                
-                let sysinfo = {
-                    "mem_usage":((os.totalmem()-os.freemem())/MEMsize).toFixed(1)+"GB/"+(os.totalmem()/MEMsize).toFixed(0)+"GB（"+((1-mem)*100).toFixed(1)+"%）",
-                    "cpu_usage":(cpu*100).toFixed(1)+"%",
-                    "sys_uptime":day + "天"  + hour + "小时" + minute + "分" + second + "秒"
-                }
-                let str = content.format(sysinfo)
-                bot.sendGroupMsg(groupID[0],str)
+            
+                var current_disk = __dirname.substr(0,2).toLowerCase();
+                diskinfo.getDrives(function(err, aDrives) {
+                    if(aDrives.some((val) => val.mounted.toLowerCase()===current_disk)){
+                        let s = aDrives.indexOf(aDrives.filter(d=>d.mounted.toLowerCase() === current_disk)[0]);
+                        var disk_usage = (aDrives[s].used /1024 /1024 /1024).toFixed(0) + "GB/"+(aDrives[s].blocks /1024 /1024 /1024).toFixed(0) + "GB（"+aDrives[s].capacity+"）";
+                    }
+                    let sysinfo = {
+                        "mem_usage":((os.totalmem()-os.freemem())/MEMsize).toFixed(1)+"GB/"+(os.totalmem()/MEMsize).toFixed(0)+"GB（"+((1-mem)*100).toFixed(1)+"%）",
+                        "cpu_usage":(cpu*100).toFixed(1)+"%",
+                        "disk_usage":disk_usage,
+                        "sys_uptime":day + "天"  + hour + "小时" + minute + "分" + second + "秒"
+                    }
+                    let str = content.format(sysinfo)
+                    bot.sendGroupMsg(groupID[0],str)
+                })
             });
         };
         break;
@@ -544,7 +583,6 @@ function modules(e,re,pe,type,content,mab,xab,maa,pnb,scf,succeed,failed){
         break;
     }
 }
-
 
 client.Connect();                       //建立WS客户端连接
 client.ws.on("connect",function(con){   //WS客户端连接成功
