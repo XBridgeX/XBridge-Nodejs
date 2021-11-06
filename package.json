@@ -4,6 +4,7 @@
   "description": "XBridgeN(Powered by OICQ)",
   "dependencies": {
     "dgram": "^1.0.1",
+    "diskinfo": "^0.0.3",
     "http": "^0.0.1-security",
     "oicq": "^1.19.4",
     "os-utils": "^0.0.14",
