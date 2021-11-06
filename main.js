@@ -3,7 +3,7 @@ var fs = require('fs');
 //let path = require('path');
 let data = "./config/global_setting.json"
 let datapath = "./config"
-let ver = "1.0.0_beta11050145"
+let ver = "1.0.0_beta11061744"
 
 function logger(e){
 	console.log(e)
