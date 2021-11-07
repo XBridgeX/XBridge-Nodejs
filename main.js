@@ -1,9 +1,12 @@
 "use strict"
 var fs = require('fs');
 //let path = require('path');
-let data = "./config/global_setting.json"
-let datapath = "./config"
-let ver = "1.0.0_beta11061744"
+let http = require('http');
+let https = require('https');
+let data = "./config/global_setting.json";
+let datapath = "./config";
+let ver = "v1.0.0_preview_1";
+let update_url = "https://www.minebbs.com/resources/xbridgen-ocl.3090/updates";
 
 function logger(e){
 	console.log(e)
@@ -14,6 +17,41 @@ function init(){
 	if(!fs.existsSync(datapath)){   //创建配置文件目录
         fs.mkdirSync(datapath)
     }
+
+    var github_option = {   //请求选项，github更新源
+        rejectUnauthorized: false,
+        hostname:'api.github.com',
+        path:'/repos/xbridgex/xbridge-nodejs/releases/latest',
+        headers:{
+            'Accept':'*/*',
+            'Accept-Encoding':'utf-8',
+            'Accept-Language':'zh-CN,zh;q=0.8',
+            'Connection':'keep-alive',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36'
+        }
+    }
+
+    https.get(github_option,(res) => {      //更新检测
+        var result_json = "";
+        res.on("data",(data)=>{
+            result_json+=data
+        })
+        res.on("end",()=>{
+            var github_release = JSON.parse(result_json);
+            logger("\n[Update Check] 正在检查更新...")
+            if (ver != github_release.name){
+                logger("[Update Check] 发现新版本："+github_release.name+"。请前往 "+update_url+" 获取更新！\n\n# "+github_release.name+" - 更新提要：\n"+github_release.body+"\n")
+                setInterval(function(){logger("\n[Update Check] 发现新版本："+github_release.name+"。前往 "+update_url+" 以获取最新版本")},120000)
+            }
+            else{
+                logger("[Update Check] 检查完毕，当前版本已经是最新版本。\n")
+            }
+        })
+        res.resume();
+    }).on('error', (err) => {
+        logger("[Update Check] 更新检查失败，网络问题："`${err.message}\n`);
+    })
+
 	try{                            //全局配置检测
 		if(fs.openSync(data,'r')){
 			logger("[INFO] 正在加载全局配置...");
@@ -93,14 +131,14 @@ function ocl_core(){
     },3500)
 
     setTimeout(function link(){
-    exports.bot = bot;//主程序;
-    exports.address = address;
-    exports.servername = servername;
-    exports.qq_passwd = qq_passwd;
-    exports.ws_passwd = ws_passwd;
-    exports.groupID = groupID;
-    exports.datapath = datapath
-    require("./app");
+        exports.bot = bot;//主程序;
+        exports.address = address;
+        exports.servername = servername;
+        exports.qq_passwd = qq_passwd;
+        exports.ws_passwd = ws_passwd;
+        exports.groupID = groupID;
+        exports.datapath = datapath
+        require("./app");
     },3000);
 
     process.stdin.on("data", (input)=>{
