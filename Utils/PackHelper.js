@@ -43,6 +43,23 @@ module.exports.GetSendTextPack = function(k,iv,text){
     return GetEncrypt(k,iv,JSON.stringify(p))
 }
 
+/** 
+* 发送文本数据包
+* @param k 加密密匙
+* @param iv 加密偏移量
+*/
+module.exports.GetServerStartPack = function(k,iv){
+    var p = {
+        type : "pack",
+        action : "startrequest",
+        params : {
+            id : guid()
+        }
+    }
+    return GetEncrypt(k,iv,JSON.stringify(p))
+}
+
+
 function GetEncrypt(k,iv,pack){
     var p = {
         type : "encrypted",
