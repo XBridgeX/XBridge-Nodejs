@@ -6,6 +6,7 @@ const ws = require("./Utils/Websocket");
 const AES = require("./Utils/AES");
 const MD5 = require("./Utils/MD5");
 const http = require('http');
+const https = require('https');
 const osUtils = require('os-utils');
 const os = require('os');
 const diskinfo = require('diskinfo')
@@ -18,8 +19,8 @@ var servername = conf.servername;
 var passwd = conf.ws_passwd;
 var groupID = conf.groupID;
 
-var blackbe_url_qq = "http://api.blackbe.xyz/api/qqcheck?v2=true&qq="
-var blackbe_url_id = "http://api.blackbe.xyz/api/check?v2=true&id="
+var blackbe_url_qq = "https://api.blackbe.xyz/api/qqcheck?v2=true&qq="
+var blackbe_url_id = "https://api.blackbe.xyz/api/check?v2=true&id="
 
 var client = ws.GetWebsocketClient(address , servername , passwd);
 
@@ -61,7 +62,7 @@ function prepare(){
 		}
     }catch(err){
         console.log("[XBridgeN] 正则配置不存在，正在初始化...");
-        let regex_obj = [{"regex":"^百度$","permission":0,"actions":[{"type":"http_get","content":"http://www.baidu.com","succeed":"百度一下，你就知道","failed":"请求失败,请检查网络"}]},{"regex":"^查云黑 (xboxid|qq) (.+)$","permission":0,"actions":[{"type":"blackbe_check","content":"[云黑查询结果]"}]},{"regex":"^查服$","permission":0,"actions":[{"type":"runcmd","content":"list"}]},{"regex":"^自杀$","permission":0,"actions":[{"type":"runcmd","content":"kill {player}"}]},{"regex":"^/cmd (.+$)","permission":1,"actions":[{"type":"runcmd_raw","content":"指令发送成功！"}]},{"regex":"^绑定 ([A-Za-z0-9 ]{4,20})$","permission":0,"actions":[{"type":"bind_whitelist","content":"您的Xbox ID“{player}”已绑定，请等待管理员开通白名单！"}]},{"regex":"^我要白名单$","permission":0,"actions":[{"type":"add_whitelist_self","content":"您的Xbox ID“{player}”已添加到服务器白名单！"}]},{"regex":"^我的信息$","permission":0,"actions":[{"type":"bind_check_self","content":"\n您的绑定信息："}]},{"regex":"^查绑定 (.+$)","permission":1,"actions":[{"type":"bind_check","content":"\n查询结果："}]},{"regex":"^加白名单 (.+$)","permission":1,"actions":[{"type":"add_whitelist","content":"已将“{player}”添加到所有服务器的白名单!"}]},{"regex":"^删白名单 (.+$)","permission":1,"actions":[{"type":"del_whitelist","content":"已将“{player}”从所有服务器的白名单中移除!"}]},{"regex":"^解绑$","permission":0,"actions":[{"type":"unbind_whitelist","content":"白名单解绑成功！"}]},{"regex":"^帮助$","permission":0,"actions":[{"type":"group_message","content":"这是一条没用的帮助信息"}]},{"regex":"^状态$","permission":0,"actions":[{"type":"sys_info","content":"服务器状态\nCPU使用：{cpu_usage}\n内存使用：{mem_usage}\n磁盘空间使用：{disk_usage}\n已运行时间：{sys_uptime}"}]}];
+        let regex_obj = [{"regex":"^百度$","permission":0,"actions":[{"type":"http_get","content":"http://www.baidu.com","succeed":"百度一下，你就知道","failed":"请求失败,请检查网络"}]},{"regex":"^查云黑 (xboxid|qq) (.+)$","permission":0,"actions":[{"type":"blackbe_check","content":"[云黑查询结果]"}]},{"regex":"^查服$","permission":0,"actions":[{"type":"runcmd","content":"list"}]},{"regex":"^开服","permission":0,"actions":[{"type":"server_start_nl","content":"请稍后..."}]},{"regex":"^关服$","permission":0,"actions":[{"type":"runcmd","content":"stop"}]},{"regex":"^自杀$","permission":0,"actions":[{"type":"runcmd","content":"kill {player}"}]},{"regex":"^/cmd (.+$)","permission":1,"actions":[{"type":"runcmd_raw","content":"指令发送成功！"}]},{"regex":"^绑定 ([A-Za-z0-9 ]{4,20})$","permission":0,"actions":[{"type":"bind_whitelist","content":"您的Xbox ID“{player}”已绑定，请等待管理员开通白名单！"}]},{"regex":"^我要白名单$","permission":0,"actions":[{"type":"add_whitelist_self","content":"您的Xbox ID“{player}”已添加到服务器白名单！"}]},{"regex":"^我的信息$","permission":0,"actions":[{"type":"bind_check_self","content":"\n您的绑定信息："}]},{"regex":"^查绑定 (.+$)","permission":1,"actions":[{"type":"bind_check","content":"\n查询结果："}]},{"regex":"^加白名单 (.+$)","permission":1,"actions":[{"type":"add_whitelist","content":"已将“{player}”添加到所有服务器的白名单!"}]},{"regex":"^删白名单 (.+$)","permission":1,"actions":[{"type":"del_whitelist","content":"已将“{player}”从所有服务器的白名单中移除!"}]},{"regex":"^解绑$","permission":0,"actions":[{"type":"unbind_whitelist","content":"白名单解绑成功！"}]},{"regex":"^帮助$","permission":0,"actions":[{"type":"group_message","content":"这是一条没用的帮助信息"}]},{"regex":"^状态$","permission":0,"actions":[{"type":"sys_info","content":"服务器状态\nCPU使用：{cpu_usage}\n内存使用：{mem_usage}\n磁盘空间使用：{disk_usage}\n已运行时间：{sys_uptime}"}]}];
         let regex_data = JSON.stringify(regex_obj,null,'\t');
         var fd = fs.openSync(regex_json,'w');
         fs.writeSync(fd, regex_data);
@@ -146,7 +147,7 @@ bot.on("message.group", function(e){    //监听群消息
 //公共方法：云黑核心
 function blackbe_core(e,url,notice_type,be_target,content){
     let pe = JSON.parse(fs.readFileSync(players_event_json));
-    http.get(url,(res) => {
+    https.get(url,(res) => {
         var result_json = "";
         res.on("data",(data)=>{
             result_json+=data
@@ -341,7 +342,7 @@ function logic_main(e){
         try{
             let chatobj = {"group_name":e.group_name,"sender":e.sender.card,"content":e.raw_message};
             let str = pe.player_chat.toServer.format(chatobj);
-            ws_send.sendUTF(PHelper.GetSendTextPack(k,iv,str));
+            setTimeout(function(){ws_send.sendUTF(PHelper.GetSendTextPack(k,iv,str))},500);
         }
         catch(err){
             console.error("[XBridgeN] 服务器未开启或连接中断，无法将群消息转发到服务器！");
@@ -494,14 +495,41 @@ function modules(e,re,pe,type,content,mab,xab,maa,pnb,scf,succeed,failed){
         };break;
 
         case "http_get":{   //发起http_get请求
-            http.get(content,(res) => {
-                //console.log(`[XBridgeN] ${res.statusCode}OK`);
+            let url_re = new RegExp(/(http:\/\/|https:\/\/)(.+)/,"g")
+            let http_protocol = content.replace(url_re,"$1");
+            let url = content.replace(url_re,"$2");
+            let request_option = {
+                rejectUnauthorized: false,
+                hostname:url,
+                path:'/',
+                headers:{
+                    'Accept':'*/*',
+                    'Accept-Encoding':'utf-8',  //这里设置返回的编码方式 设置其他的会是乱码
+                    'Accept-Language':'zh-CN,zh;q=0.8',
+                    'Connection':'keep-alive',
+                    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36'
+                }
+            };
+
+            switch (http_protocol){
+                case "http://":{
+                    var GET = http.get
+                };
+                break;
+
+                case "https://":{
+                    var GET = https.get
+                };
+                break;
+            };
+
+            GET(request_option,(res) => {
                 e.reply(succeed)
                 res.resume();
-                }).on('error', (err) => {
-                    e.reply(failed)
-                    console.log(`[XBridgeN] ${err.message}`);
-                })
+            }).on('error', (err) => {
+                e.reply(failed)
+                console.log(`[XBridgeN] ${err.message}`);
+            })
         };
         break;
 
@@ -581,6 +609,12 @@ function modules(e,re,pe,type,content,mab,xab,maa,pnb,scf,succeed,failed){
             }
         };
         break;
+
+        case "server_start_nl":{    //开服（适配NilLauncher）
+            ws_send.sendUTF(PHelper.GetServerStartPack(k,iv));
+            bot,sendGroupMsg(groupID[0],content);
+        };
+        break;
     }
 }
 
@@ -599,7 +633,7 @@ client.ws.on("connect",function(con){   //WS客户端连接成功
             let cause = data.cause;
             let e = data.params;
             let info = {"player":e.sender}
-
+            //console.log(data)
             switch(cause)
             {
                 case "join":{
@@ -671,6 +705,14 @@ client.ws.on("connect",function(con){   //WS客户端连接成功
                 break;
 
                 case "plantext":{};break;
+
+                case "debug":{
+                    if(e.msg == "正在请求开启服务器"){
+                        bot.sendGroupMsg(groupID[0],e.msg)
+                    }
+                };
+                break;
+
                 case "decodefailed":{
                     bot.sendGroupMsg(groupID[0], "数据包解析失败，请前往后台查看");
                     console.error("数据包解析失败：",e.msg)
